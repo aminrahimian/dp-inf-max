@@ -11,12 +11,14 @@ import pickle
 #Parameters
 
 
-      
-n=1005
-m=1000
-k=10
-p_ic=0.04
-epsilon=1e-1
+
+
+n = 1005
+m = 100
+k = 4
+p_ic = 0.05
+s_bulk=40
+# epsilon = 1e-1
 
 
 G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
@@ -32,7 +34,7 @@ def load_subgraphs():
 
 
 
-m_live_edges=load_subgraphs()
+# m_live_edges=load_subgraphs()
 
 
 
@@ -40,15 +42,13 @@ m_live_edges=load_subgraphs()
 def load_matrix_X():
     
     
-    with open('matrix_X_1000.pkl', 'rb') as f:
+    with open('matrices_X.pkl', 'rb') as f:
         matrix_X = pickle.load(f)
         
     return matrix_X
 
 
-matrix_X=load_matrix_X()
-
-
+matrices_X=load_matrix_X()
 
 
 
@@ -230,10 +230,16 @@ def j_value(seed_set,n,m,matrix_x_tilde,set_of_matrices,list_nodes):
     return n*(1-np.matmul(set_of_matrices[len(seed_set)],f_tilde)[0])
 
 
-epsilon_values=[0.01]
 
-list_nodes=list(m_live_edges[0].nodes())
+list_nodes=list(G_base.nodes())
 
+
+
+
+m_values = [10,20,30,40,50,75]
+
+
+epsilon_values = [0.01,1]
 
 for eps in epsilon_values:
     
@@ -241,70 +247,73 @@ for eps in epsilon_values:
     
     set_of_matrices_array=set_of_matrices(k,rho)
 
-    m_values=[200]
     
     for h in m_values:
         
         
         Expected_spread=[]
-        
-        c_matrix_C=copy.deepcopy(matrix_X)
-        
-        
-        sub_matrix_X= c_matrix_C[0:h,:]
-        
     
+        ## be sure you load bulk matrices
         
-        for z in range(10):
+        c_matrix_C = copy.deepcopy(matrices_X)
+        
+
+        for z in range(40):
             
+                
+            sub_matrix_X = c_matrix_C[z][0:h, :]
             print("iteration  :" +str(z) + " m value" +str(h) +" eps " +str(eps))
-            
-            seed_set=[]
-            
-            matrix_x_tilde=generate_matrix_x_tilde(sub_matrix_X, rho,h,n)
-            
-            
-            for w in range(k):
+           
+            for chi in range(5):
                 
-                print("seed  :" +str(w))
-                 
-                set_s= copy.deepcopy(seed_set)
+               
                 
-                A=set(set_s)
-                B=set(m_live_edges[0].nodes())
+                seed_set=[]
                 
-                iter_set=B.difference(A)
+                matrix_x_tilde=generate_matrix_x_tilde(sub_matrix_X, rho,h,n)
                 
-                set_s_union_v=copy.deepcopy(seed_set)
-                list_iter_set=list(iter_set)
-            
-            
-                j_lists=[]
                 
-                for i in range(len(list_iter_set)):
+                for w in range(k):
                     
+                    # print("seed  :" +str(w))
+                     
+                    set_s= copy.deepcopy(seed_set)
                     
-                    set_s_union_v.append(i)
+                    A=set(set_s)
+                    B=set(G_base.nodes())
                     
-                
-                    j_lists.append(j_value(set_s_union_v,n,h,matrix_x_tilde,set_of_matrices_array,list_nodes) - j_value(seed_set,n,h,matrix_x_tilde,set_of_matrices_array,list_nodes))
+                    iter_set=B.difference(A)
                     
                     set_s_union_v=copy.deepcopy(seed_set)
-                 
-                  
-                 
-                seed_set.append(list_iter_set[np.argmax(j_lists)])
+                    list_iter_set=list(iter_set)
                 
                 
-          
-                
-            Expected_spread.append(i_x_s(seed_set, sub_matrix_X)*(n/h))
-        
+                    j_lists=[]
+                    
+                    for i in range(len(list_iter_set)):
+                        
+                        
+                        set_s_union_v.append(i)
+                        
+                    
+                        j_lists.append(j_value(set_s_union_v,n,h,matrix_x_tilde,set_of_matrices_array,list_nodes) - j_value(seed_set,n,h,matrix_x_tilde,set_of_matrices_array,list_nodes))
+                        
+                        set_s_union_v=copy.deepcopy(seed_set)
+                     
+                      
+                     
+                    seed_set.append(list_iter_set[np.argmax(j_lists)])
+                    
+                    
+              
+                    
+                Expected_spread.append(i_x_s(seed_set, c_matrix_C[z])*(n/m))
+            
         
             
         Expected_spread
         
-        name_file="alg4_"+str(h) + "epsilon_"+str(eps)+".csv"
+        name_file="k" +str(k) +"alg4_"+str(h) + "epsilon_"+str(eps)+".csv"
         
         np.savetxt(name_file, Expected_spread, delimiter=",")
     
