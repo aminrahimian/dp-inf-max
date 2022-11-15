@@ -12,7 +12,6 @@ from gurobipy import GRB
 
 #Parameters
 
-
 n = 1005
 m = 100
 k = 4
@@ -20,12 +19,10 @@ p_ic = 0.05
 s_bulk=40
 # epsilon = 1e-1
 
-
 G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
 
 
 def load_subgraphs():
-    
     
     with open('live_edges.pkl', 'rb') as f:
         m_live_edges = pickle.load(f)
@@ -35,8 +32,6 @@ def load_subgraphs():
 
 
 # m_live_edges=load_subgraphs()
-
-
 
 
 def load_matrix_X():
@@ -266,10 +261,6 @@ def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
     
     f_0=f_tilde[0]
     
-    if f_0<=0:
-        
-        f_0=0
-        
 
     return n*(1-f_0)
 
@@ -281,13 +272,13 @@ def j0_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
     
     f_tilde=f_tilded(seed_set, matrix_x_tilde,m)  
     
-    f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
+    # f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
     
-    if f_0<=0:
+    # if f_0<=0:
         
-        f_0=0
+    #     f_0=0
     
-    return f_0
+    return f_tilde[0]
 
 
 
@@ -331,7 +322,7 @@ for eps in epsilon_values:
             
             ## Iteration over runnings of the algorithm
            
-            for chi in range(20):
+            for chi in range(5):
                 
                
                 
@@ -357,7 +348,7 @@ for eps in epsilon_values:
                 
                     j_lists=[]
                     
-                    j_o_vals=[]
+                    # j_o_vals=[]
                     
                     for i in range(len(list_iter_set)):
                         
@@ -366,7 +357,7 @@ for eps in epsilon_values:
                         
                         # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
                         j_lists.append(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
-                        j_o_vals.append(j0_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
+                        # j_o_vals.append(j0_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
                         
                         
                         set_s_union_v=copy.deepcopy(seed_set)
