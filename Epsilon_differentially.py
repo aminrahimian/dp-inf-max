@@ -6,8 +6,7 @@ import copy
 import pickle
 from scipy.stats import bernoulli
 
-# Parameters
-
+# Parameters of the network
 
 n = 1005
 m = 100
@@ -19,7 +18,9 @@ s_bulk=40
 
 G_base = nx.read_edgelist("email-Eu-core.txt.gz",nodetype=int, data=(("Type", str),))
 
+def func_test():
 
+    pass
 
 # n is the number of edges not nodes
 def live_edges_saving(n, p, G):
