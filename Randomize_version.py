@@ -6,11 +6,11 @@ import copy
 from scipy.stats import bernoulli
 from scipy.special import comb
 import pickle
+import gurobipy as gp
+from gurobipy import GRB
 
 
 #Parameters
-
-
 
 
 n = 1005
@@ -136,7 +136,8 @@ def fill_matrix_c(matrix_C, dim_matrix_c, rho,l):
             
             matrix_C[i,j]=sum_combinatorics(i,j,l, rho)
             
-        
+            
+    return matrix_C
 
 
 def f_tilde_a(seed_set,m,a,matrix_x_tilde):
@@ -172,12 +173,44 @@ def set_of_matrices(k,rho):
         
         matrix_C=np.zeros((dim_matrix_c,dim_matrix_c))
         
-        fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
+        matrix_C_up=fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
         
-        set_of_matrices.append(np.linalg.inv(matrix_C))
+        matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
+
+        psd_inverse=np.linalg.inv(np.matmul(matrix_C_up.T, matrix_C_up))
+        
+        set_of_matrices.append(np.matmul(psd_inverse,matrix_C_up.T))
+        
+        
+
+    return set_of_matrices
+
+
+
+def set_of_matrices_without_inversion(k,rho):
+    
+    
+    set_of_matrices=[]
+    
+    
+    for o in range(k+1):
+        
+        dim_matrix_c=o+1
+        
+        matrix_C=np.zeros((dim_matrix_c,dim_matrix_c))
+        
+        matrix_C_up=fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
+        
+        # matrix_C_up=np.append(matrix_C_up, [dim_matrix_c*[1]], axis=0)
+
+        
+        set_of_matrices.append(np.linalg.inv(matrix_C_up))
     
     
     return set_of_matrices
+
+
+
 
 
 
@@ -193,7 +226,7 @@ def binary_converter(l, list_nodes):
         return 0
 
 
-def f_tilded(seed_set, matrix_x_tilde,list_nodes,m):
+def f_tilded(seed_set, matrix_x_tilde,m):
     
     
     if seed_set==[]:
@@ -222,30 +255,59 @@ def f_tilded(seed_set, matrix_x_tilde,list_nodes,m):
         return np.array(f_tilde)
 
 
-def j_value(seed_set,n,m,matrix_x_tilde,set_of_matrices,list_nodes):
-    
-    
-    f_tilde=f_tilded(seed_set, matrix_x_tilde,list_nodes,m)
+# set_of_matrices_in=set_of_matrices(k,rho)
 
-    return n*(1-np.matmul(set_of_matrices[len(seed_set)],f_tilde)[0])
+def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
+    
+    
+    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)  
+    
+    
+    
+    f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
+    
+    # if f_0<=0:
+        
+    #     f_0=0
+        
+
+    return n*(1-f_0)
+
+
+
+
+def j0_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
+    
+    
+    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)  
+    
+    f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
+    
+    if f_0<=0:
+        
+        f_0=0
+    
+    return f_0
+
+
+
+def my_indices(lst, item):
+   return [i for i, x in enumerate(lst) if x == item]
 
 
 
 list_nodes=list(G_base.nodes())
 
 
+m_values = [5,10,20,30,40,60,80]
 
-
-m_values = [10,20,30,40,50,75]
-
-
-epsilon_values = [0.01,1]
+epsilon_values = [0.1,1]
 
 for eps in epsilon_values:
     
     rho=(np.exp(eps)+1)**-1
     
-    set_of_matrices_array=set_of_matrices(k,rho)
+    set_of_matrices_array=set_of_matrices_without_inversion(k,rho)
 
     
     for h in m_values:
@@ -257,14 +319,19 @@ for eps in epsilon_values:
         
         c_matrix_C = copy.deepcopy(matrices_X)
         
-
+        ## Iteration over influence samples 
+        
+        
         for z in range(40):
             
                 
             sub_matrix_X = c_matrix_C[z][0:h, :]
             print("iteration  :" +str(z) + " m value" +str(h) +" eps " +str(eps))
+            
+            
+            ## Iteration over runnings of the algorithm
            
-            for chi in range(5):
+            for chi in range(20):
                 
                
                 
@@ -290,19 +357,25 @@ for eps in epsilon_values:
                 
                     j_lists=[]
                     
+                    j_o_vals=[]
+                    
                     for i in range(len(list_iter_set)):
                         
                         
                         set_s_union_v.append(i)
                         
-                    
-                        j_lists.append(j_value(set_s_union_v,n,h,matrix_x_tilde,set_of_matrices_array,list_nodes) - j_value(seed_set,n,h,matrix_x_tilde,set_of_matrices_array,list_nodes))
+                        # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
+                        j_lists.append(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
+                        j_o_vals.append(j0_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
+                        
                         
                         set_s_union_v=copy.deepcopy(seed_set)
                      
                       
-                     
-                    seed_set.append(list_iter_set[np.argmax(j_lists)])
+                    
+                    candidates=my_indices(j_lists, max(j_lists))    
+                    
+                    seed_set.append(random.choice(candidates))
                     
                     
               
@@ -318,29 +391,6 @@ for eps in epsilon_values:
         np.savetxt(name_file, Expected_spread, delimiter=",")
     
         
-        
-        
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
