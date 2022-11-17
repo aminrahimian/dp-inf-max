@@ -50,7 +50,7 @@ def live_edges_saving(n, p, G):
 
 
 def save_graph_in_list(m, G_base, p_ic):
-    #   This function generates a list where each element is a influence cascade network
+    #   This function generates a list where each element is an influence cascade network
     #   Input as the parameters defined globally.
 
     test_keys = list(G_base.nodes())
@@ -92,8 +92,6 @@ def built_matrix_X(m, n, m_live_edges):
 
     uniform_nodes = np.random.choice(indices, size=m, replace=True)
 
-    print(uniform_nodes)
-
     for i in range(m):
         matrix_X[i, :] = np.array(
             [nx.has_path(m_live_edges[i], j, uniform_nodes[i]) for j in range(n)])
@@ -104,6 +102,7 @@ def built_matrix_X(m, n, m_live_edges):
 def bulk_matrices(s_bulk, m_live_edges, m, n, p_ic):
     #   This function generates and save a set of X matrices.
     #   The number of matrices are defined by bulk_matrices parameter
+    #   Return a list with the matrices X and save it as pkl file
 
     bulk_matrices = []
 
@@ -116,3 +115,18 @@ def bulk_matrices(s_bulk, m_live_edges, m, n, p_ic):
         pickle.dump(bulk_matrices, f)
 
     return bulk_matrices
+
+
+
+def load_matrix_X():
+    # Function to load pickle file with already generate X matrices
+    with open('matrices_X.pkl', 'rb') as f:
+        matrix_X = pickle.load(f)
+
+    return matrix_X
+
+
+
+if __name__ == "__main__":
+
+    bulk_matrices()
