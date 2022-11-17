@@ -25,23 +25,22 @@ G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str
 
 
 def load_subgraphs():
-    
-    
+
+    # Function to load pickle files with the list of Influence cascade networks
+
     with open('live_edges.pkl', 'rb') as f:
         m_live_edges = pickle.load(f)
         
     return m_live_edges
 
 
-
 # m_live_edges=load_subgraphs()
 
 
-
-
 def load_matrix_X():
-    
-    
+
+    # Function to load pickle file with already generate X matrices
+
     with open('matrices_X.pkl', 'rb') as f:
         matrix_X = pickle.load(f)
         
@@ -49,7 +48,6 @@ def load_matrix_X():
 
 
 matrices_X=load_matrix_X()
-
 
 
 def i_x_s(S,x): 
@@ -66,11 +64,11 @@ def i_x_s(S,x):
         return sum(temp>=1)
     
 
-
-
 def generate_matrix_x_tilde(matrix_X, rho,m,n):
     
-    
+    #   Function to generate the matrix x_tilde from matrix X of dimensions mxn
+    #   Rho is the flipping probability
+
     matrix_x_tilde=np.zeros((m,n))
     
     for i in range(m):
@@ -100,17 +98,15 @@ def generate_matrix_x_tilde(matrix_X, rho,m,n):
 # matrix_x_tilde=generate_matrix_x_tilde(matrix_X, rho,m,n)
 
 
-
-
 def combinatorics(a,b,l_curv,rho, l):
-    
+
+    # Function used in sum_combinatorics(a,b,l,rho) define value of the entry a,b in the matrix C
     
     return comb(b,l_curv)* comb((l-b), (a-b+l_curv))*(rho**(a-b + 2*l_curv))* ((1-rho)**(l-a+b -2*l_curv))
 
-
-
 def sum_combinatorics(a,b,l,rho):
-    
+
+    # Function to define value of the entry a,b in the matrix C
     
     lower= max(0, b-a)
     upper= min((l-a),b)
@@ -119,29 +115,28 @@ def sum_combinatorics(a,b,l,rho):
     cont=0
     
     for i in range(lower, upper+1):
-        
-        
+
         cont+=combinatorics(a,b,i,rho,l)
-    
 
     return cont
 
-
-
 def fill_matrix_c(matrix_C, dim_matrix_c, rho,l):
+
+    #   Function to built matrix C_{rho,l}
     
     for i in range(dim_matrix_c):
         
         for j in range(dim_matrix_c):
             
             matrix_C[i,j]=sum_combinatorics(i,j,l, rho)
-            
-            
+
     return matrix_C
 
 
 def f_tilde_a(seed_set,m,a,matrix_x_tilde):
-    
+
+    # Function to calculate f_tilde defined in the line 1 of algorithm #5
+
     cont=0
     
     for i in range(m):
@@ -160,39 +155,29 @@ def f_tilde_a(seed_set,m,a,matrix_x_tilde):
     return cont*(1/m)
 
 
-
 def set_of_matrices(k,rho):
-    
-    
+
+    # Function that returns all the inverse matrices X in function of the seed set k
+
     set_of_matrices=[]
-    
-    
+
     for o in range(k+1):
         
         dim_matrix_c=o+1
-        
         matrix_C=np.zeros((dim_matrix_c,dim_matrix_c))
-        
         matrix_C_up=fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
-        
         matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
-
         psd_inverse=np.linalg.inv(np.matmul(matrix_C_up.T, matrix_C_up))
-        
         set_of_matrices.append(np.matmul(psd_inverse,matrix_C_up.T))
-        
-        
 
     return set_of_matrices
 
-
-
 def set_of_matrices_without_inversion(k,rho):
-    
+
+    # Function that returns a list of matrices C withouth inversion
     
     set_of_matrices=[]
-    
-    
+
     for o in range(k+1):
         
         dim_matrix_c=o+1
@@ -209,99 +194,77 @@ def set_of_matrices_without_inversion(k,rho):
     
     return set_of_matrices
 
-
-
-
-
-
 def binary_converter(l, list_nodes):
-    
-    
+
+    # Function for test purposes
+
     if l in list_nodes:
         
         return 1
-    
     else:
         
         return 0
 
 
 def f_tilded(seed_set, matrix_x_tilde,m):
-    
-    
+
+    # Function to calculate f_tilde defined in line 1 algorithm 5
+
     if seed_set==[]:
         
         return np.array([1])
-    
-    
+
     else:
-        
-        
+
         f_tilde=[]
-        
         dim_f_tilde=len(seed_set)+1
-        
         sub_x = matrix_x_tilde[:, seed_set]
-        
         vector_one=np.ones((1,len(seed_set)))
-        
         counts= np.matmul(sub_x, vector_one.T)
         
         for j in range(dim_f_tilde):
-            
+
             f_tilde.append(sum(counts==j)[0]*(1/m))
-            
-            
+
         return np.array(f_tilde)
 
 
 # set_of_matrices_in=set_of_matrices(k,rho)
 
 def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
-    
-    
-    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)  
-    
-    
-    
+
+    #   Function to calculate the value of f_0 using the seed set and matrix_x_tilde
+
+    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)
     f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
-    
-    # if f_0<=0:
-        
-    #     f_0=0
-        
 
     return n*(1-f_0)
 
 
-
-
 def j0_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
-    
-    
-    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)  
-    
+
+
+    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)
     f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
-    
-    if f_0<=0:
-        
-        f_0=0
-    
+
     return f_0
 
 
-
 def my_indices(lst, item):
-   return [i for i, x in enumerate(lst) if x == item]
 
+    # Auxiliary function to randomize selection process when max function is tight.
+
+   return [i for i, x in enumerate(lst) if x == item]
 
 
 list_nodes=list(G_base.nodes())
 
+# List that defines the number of rows of X used.
+m_values = [10,20,30,40,50,80]
 
-m_values = [5,10,20,30,40,60,80]
+# List of the epsilon values
+epsilon_values = [0.01, 1]
 
-epsilon_values = [0.1,1]
 
 for eps in epsilon_values:
     
@@ -309,17 +272,17 @@ for eps in epsilon_values:
     
     set_of_matrices_array=set_of_matrices_without_inversion(k,rho)
 
-    
+    # Iteration over the size of the submatrix of X of size m.
     for h in m_values:
         
-        
+
         Expected_spread=[]
     
-        ## be sure you load bulk matrices
+
         
         c_matrix_C = copy.deepcopy(matrices_X)
-        
-        ## Iteration over influence samples 
+
+        # Iteration over the number of influence cascades
         
         
         for z in range(40):
@@ -329,7 +292,7 @@ for eps in epsilon_values:
             print("iteration  :" +str(z) + " m value" +str(h) +" eps " +str(eps))
             
             
-            ## Iteration over runnings of the algorithm
+            # Times that algortihm runs for influence cascade, each value f m, and epsilon.
            
             for chi in range(20):
                 
@@ -356,19 +319,17 @@ for eps in epsilon_values:
                 
                 
                     j_lists=[]
-                    
-                    j_o_vals=[]
-                    
+
+
+                    # Iteration over the nodes that have not been selected yet
+
                     for i in range(len(list_iter_set)):
-                        
-                        
+
                         set_s_union_v.append(i)
-                        
                         # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
                         j_lists.append(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
-                        j_o_vals.append(j0_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
-                        
-                        
+
+
                         set_s_union_v=copy.deepcopy(seed_set)
                      
                       
@@ -377,9 +338,7 @@ for eps in epsilon_values:
                     
                     seed_set.append(random.choice(candidates))
                     
-                    
-              
-                    
+
                 Expected_spread.append(i_x_s(seed_set, c_matrix_C[z])*(n/m))
             
         
