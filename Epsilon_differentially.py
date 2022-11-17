@@ -15,10 +15,7 @@ p_ic = 0.03                 # Probability for Independent Cascade Model
 s_bulk=40                   # Number of Influence cascade model
 # epsilon = 1e-1
 
-
 G_base = nx.read_edgelist("email-Eu-core.txt.gz",nodetype=int, data=(("Type", str),))
-
-
 
 def live_edges_saving(n, p, G):
 
@@ -132,8 +129,7 @@ def load_matrix_X():
     return matrix_X
 
 
-# save_matrix_X()
-# bulk_matrices()
+
 
 def i_x_s(S, x):
 
