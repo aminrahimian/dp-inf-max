@@ -8,6 +8,7 @@ from scipy.special import comb
 import pickle
 import gurobipy as gp
 from gurobipy import GRB
+import Generate_data
 
 
 #Parameters
@@ -24,30 +25,7 @@ s_bulk=40
 G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
 
 
-def load_subgraphs():
-
-    # Function to load pickle files with the list of Influence cascade networks
-
-    with open('live_edges.pkl', 'rb') as f:
-        m_live_edges = pickle.load(f)
-        
-    return m_live_edges
-
-
-# m_live_edges=load_subgraphs()
-
-
-def load_matrix_X():
-
-    # Function to load pickle file with already generate X matrices
-
-    with open('matrices_X.pkl', 'rb') as f:
-        matrix_X = pickle.load(f)
-        
-    return matrix_X
-
-
-matrices_X=load_matrix_X()
+matrices_X=Generate_data.load_matrix_X()
 
 
 def i_x_s(S,x): 
