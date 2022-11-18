@@ -6,8 +6,6 @@ import copy
 from scipy.stats import bernoulli
 from scipy.special import comb
 import pickle
-import gurobipy as gp
-from gurobipy import GRB
 import Generate_data
 
 
@@ -133,6 +131,9 @@ def f_tilde_a(seed_set,m,a,matrix_x_tilde):
     return cont*(1/m)
 
 
+
+
+
 def set_of_matrices(k,rho):
 
     # Function that returns all the inverse matrices X in function of the seed set k
@@ -144,8 +145,8 @@ def set_of_matrices(k,rho):
         dim_matrix_c=o+1
         matrix_C=np.zeros((dim_matrix_c,dim_matrix_c))
         matrix_C_up=fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
-        matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
-        psd_inverse=np.linalg.inv(np.matmul(matrix_C_up.T, matrix_C_up))
+        # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
+        psd_inverse=np.linalg.inv(matrix_C_up)
         set_of_matrices.append(np.matmul(psd_inverse,matrix_C_up.T))
 
     return set_of_matrices
