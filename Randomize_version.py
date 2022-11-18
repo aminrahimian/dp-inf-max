@@ -16,7 +16,8 @@ n = 1005
 m = 100
 k = 4
 p_ic = 0.05
-s_bulk=40
+no_ind_cascades=40
+algo_iter=5
 # epsilon = 1e-1
 
 
@@ -147,7 +148,7 @@ def set_of_matrices(k,rho):
         matrix_C_up=fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
         # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
         psd_inverse=np.linalg.inv(matrix_C_up)
-        set_of_matrices.append(np.matmul(psd_inverse,matrix_C_up.T))
+        set_of_matrices.append(psd_inverse)
 
     return set_of_matrices
 
@@ -167,7 +168,6 @@ def set_of_matrices_without_inversion(k,rho):
         
         # matrix_C_up=np.append(matrix_C_up, [dim_matrix_c*[1]], axis=0)
 
-        
         set_of_matrices.append(np.linalg.inv(matrix_C_up))
     
     
@@ -249,38 +249,30 @@ for eps in epsilon_values:
     
     rho=(np.exp(eps)+1)**-1
     
-    set_of_matrices_array=set_of_matrices_without_inversion(k,rho)
+    set_of_matrices_array=set_of_matrices(k,rho)
 
     # Iteration over the size of the submatrix of X of size m.
     for h in m_values:
-        
 
         Expected_spread=[]
-    
 
-        
         c_matrix_C = copy.deepcopy(matrices_X)
 
         # Iteration over the number of influence cascades
-        
-        
-        for z in range(40):
-            
-                
+        #no_ind_cascades
+        for z in range(no_ind_cascades):
+
             sub_matrix_X = c_matrix_C[z][0:h, :]
             print("iteration  :" +str(z) + " m value" +str(h) +" eps " +str(eps))
             
             
             # Times that algortihm runs for influence cascade, each value f m, and epsilon.
            
-            for chi in range(20):
-                
-               
-                
+            for chi in range(algo_iter):
+
                 seed_set=[]
                 
                 matrix_x_tilde=generate_matrix_x_tilde(sub_matrix_X, rho,h,n)
-                
                 
                 for w in range(k):
                     
@@ -296,7 +288,6 @@ for eps in epsilon_values:
                     set_s_union_v=copy.deepcopy(seed_set)
                     list_iter_set=list(iter_set)
                 
-                
                     j_lists=[]
 
 
@@ -308,10 +299,8 @@ for eps in epsilon_values:
                         # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
                         j_lists.append(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
 
-
                         set_s_union_v=copy.deepcopy(seed_set)
-                     
-                      
+
                     
                     candidates=my_indices(j_lists, max(j_lists))    
                     
