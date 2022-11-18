@@ -224,9 +224,8 @@ def j0_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
 
 
     f_tilde=f_tilded(seed_set, matrix_x_tilde,m)
-    f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
 
-    return f_0
+    return n*(1-f_tilde)
 
 
 def my_indices(lst, item):
