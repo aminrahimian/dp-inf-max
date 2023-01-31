@@ -144,46 +144,67 @@ def f_tilde_a(seed_set,m,a,matrix_x_tilde):
     return cont*(1/m)
 
 
-
-
-
-def set_of_matrices(k,rho):
+def set_of_matrices(k, rho, algo_arg, penalty):
 
     # Function that returns all the inverse matrices X in function of the seed set k
+    if algo_arg=="4":
 
-    set_of_matrices=[]
+        set_of_matrices = []
 
-    for o in range(k+1):
-        
-        dim_matrix_c=o+1
-        matrix_C=np.zeros((dim_matrix_c,dim_matrix_c))
-        matrix_C_up=fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
-        # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
-        psd_inverse=np.linalg.inv(matrix_C_up)
-        set_of_matrices.append(psd_inverse)
+        for o in range(k + 1):
 
-    return set_of_matrices
+            dim_matrix_c = o + 1
+            matrix_C = np.zeros((dim_matrix_c, dim_matrix_c))
+            matrix_C_up = fill_matrix_c(matrix_C, dim_matrix_c, rho, o)
+            # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
+            psd_inverse = np.linalg.inv(matrix_C_up)
+            set_of_matrices.append(psd_inverse)
 
-def set_of_matrices_without_inversion(k,rho):
+        return set_of_matrices
 
-    # Function that returns a list of matrices C withouth inversion
-    
-    set_of_matrices=[]
 
-    for o in range(k+1):
-        
-        dim_matrix_c=o+1
-        
-        matrix_C=np.zeros((dim_matrix_c,dim_matrix_c))
-        
-        matrix_C_up=fill_matrix_c(matrix_C, dim_matrix_c, rho,o)
-        
-        # matrix_C_up=np.append(matrix_C_up, [dim_matrix_c*[1]], axis=0)
+    elif algo_arg=="5":
 
-        set_of_matrices.append(np.linalg.inv(matrix_C_up))
-    
-    
-    return set_of_matrices
+        set_of_matrices = []
+
+        for o in range(k + 1):
+
+            dim_matrix_c = o + 1
+            set_of_matrices.append(np.eye(dim_matrix_c))
+
+        return set_of_matrices
+
+    else:
+
+        set_of_matrices = []
+
+        for o in range(k + 1):
+
+            if o <= 2:
+
+                dim_matrix_c = o + 1
+                matrix_C = np.zeros((dim_matrix_c, dim_matrix_c))
+                matrix_C_up = fill_matrix_c(matrix_C, dim_matrix_c, rho, o)
+                # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
+                psd_inverse = np.linalg.inv(matrix_C_up)
+                set_of_matrices.append(psd_inverse)
+
+            else:
+                dim_matrix_c = o + 1
+                matrix_C = np.zeros((dim_matrix_c, dim_matrix_c))
+                matrix_C_up = fill_matrix_c(matrix_C, dim_matrix_c, rho, o)
+                # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
+                matrix_tem = copy.deepcopy(matrix_C_up)
+                xx = matrix_tem[:, :-1]
+                p1 = np.dot(xx.T, xx) + (penalty ** 2) * np.dot(np.eye(o), np.eye(o))
+                p2 = np.linalg.inv(p1)
+                p3 = np.dot(p2, xx.T)
+                set_of_matrices.append(p3)
+
+        return set_of_matrices
+
+
+
 
 def binary_converter(l, list_nodes):
 
