@@ -9,19 +9,31 @@ import pickle
 import Generate_data
 
 
-#Parameters
+# Parameters of the network
+
+# Parameters of College Network
+
+n = 2426  # Number of nosde
+m = 250  # Number of nodes samples to built matrix X for each influence cascade
+k = 4  # Number of the seed set
+p_ic = 0.05  # Probability for Independent Cascade Model
+s_bulk = 50  # Number of Influence cascade model
+# epsilon = 1
+penalty = 0
 
 
-n = 1005
-m = 100
-k = 4
-p_ic = 0.05
-no_ind_cascades=40
-algo_iter=5
-# epsilon = 1e-1
+# G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
+# G_base = nx.read_edgelist("Contact-diaries-network_data_2013.csv.gz",nodetype=int, data=(("Type", str),))
+# G_base=G_base.to_undirected()
 
+G_base = nx.read_edgelist("soc-hamsterster_v2.edgelist.txt")
+G_base = G_base.to_undirected()
+previous_n_labels = G_base.nodes()
+new_labes = list(range(len(previous_n_labels)))
+dictionary_mapping = dict(zip(previous_n_labels, new_labes))
+G_base = nx.relabel_nodes(G_base, dictionary_mapping)
 
-G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
+matrices_X = Generate_data.load_matrix_X()
 
 
 matrices_X=Generate_data.load_matrix_X()
