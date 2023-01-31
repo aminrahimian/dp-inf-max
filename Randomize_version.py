@@ -240,12 +240,19 @@ def f_tilded(seed_set, matrix_x_tilde,m):
 
 # set_of_matrices_in=set_of_matrices(k,rho)
 
-def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
+def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in, algo_arg, penalty):
 
     #   Function to calculate the value of f_0 using the seed set and matrix_x_tilde
+    if not algo_arg=="6":
 
-    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)
-    f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
+        f_tilde=f_tilded(seed_set, matrix_x_tilde,m)
+        f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
+
+    else:
+
+        f_tilde = f_tilded(seed_set, matrix_x_tilde, m)
+        f_0 = np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
+
 
     return n*(1-f_0)
 
@@ -277,25 +284,11 @@ if __name__ == "__main__":
         rho = (np.exp(eps) + 1) ** -1
         dict_matrices_x_tilde[eps] = [generate_matrix_x_tilde(i, rho, m, n) for i in matrices_X]
 
-    ## debugging values
-
-    # eps=1
-    # h=40
-    # z=0
-    # chi=0
-    #### for ALGO4
-
     list_nodes = list(G_base.nodes())
 
     # List that defines the number of rows of X used.
-    # List that defines the number of rows of X used.
+
     m_values = [10, 30, 50, 80, 100, 150, 200]
-
-    # for greedy algortithm
-    # m_values = [400]
-
-    # List of the epsilon values
-
 
     for eps in epsilon_values:
 
@@ -313,12 +306,10 @@ if __name__ == "__main__":
             # no_ind_cascades
             for z in range(s_bulk):
 
-                sub_matrix_X = dict_matrices_x_tilde[eps][z][0:h, :]
+                matrix_x_tilde = dict_matrices_x_tilde[eps][z][0:h, :]
                 print("iteration  :" + str(z) + " m value" + str(h) + " eps " + str(eps))
 
                 seed_set = []
-
-                matrix_x_tilde = generate_matrix_x_tilde(sub_matrix_X, rho, h, n)
 
                 for w in range(k):
 
@@ -340,10 +331,9 @@ if __name__ == "__main__":
 
                     for i in range(len(list_iter_set)):
                         set_s_union_v.append(i)
-                        # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
-                        # change for J0_value when no post processing
 
-                        j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array))
+                        j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array,algo_arg, penalty))
+
 
                         set_s_union_v = copy.deepcopy(seed_set)
 
