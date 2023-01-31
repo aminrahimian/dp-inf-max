@@ -268,88 +268,110 @@ def my_indices(lst, item):
    return [i for i, x in enumerate(lst) if x == item]
 
 
-list_nodes=list(G_base.nodes())
+if __name__ == "__main__":
 
-# List that defines the number of rows of X used.
-m_values = [10,20,30,40,50,80]
+    epsilon_values = [0.01, 1]
 
-# List of the epsilon values
-epsilon_values = [0.01, 1]
+    dict_matrices_x_tilde = {}
 
+    for eps in epsilon_values:
+        rho = (np.exp(eps) + 1) ** -1
+        dict_matrices_x_tilde[eps] = [generate_matrix_x_tilde(i, rho, m, n) for i in matrices_X]
 
-for eps in epsilon_values:
-    
-    rho=(np.exp(eps)+1)**-1
-    
-    set_of_matrices_array=set_of_matrices(k,rho)
+    list_k = [int(k_arg)]
 
-    # Iteration over the size of the submatrix of X of size m.
-    for h in m_values:
-
-        Expected_spread=[]
-
-        c_matrix_C = copy.deepcopy(matrices_X)
-
-        # Iteration over the number of influence cascades
-        #no_ind_cascades
-        for z in range(no_ind_cascades):
-
-            sub_matrix_X = c_matrix_C[z][0:h, :]
-            print("iteration  :" +str(z) + " m value" +str(h) +" eps " +str(eps))
-            
-            
-            # Times that algortihm runs for influence cascade, each value f m, and epsilon.
-           
-            for chi in range(algo_iter):
-
-                seed_set=[]
-                
-                matrix_x_tilde=generate_matrix_x_tilde(sub_matrix_X, rho,h,n)
-                
-                for w in range(k):
-                    
-                    # print("seed  :" +str(w))
-                     
-                    set_s= copy.deepcopy(seed_set)
-                    
-                    A=set(set_s)
-                    B=set(G_base.nodes())
-                    
-                    iter_set=B.difference(A)
-                    
-                    set_s_union_v=copy.deepcopy(seed_set)
-                    list_iter_set=list(iter_set)
-                
-                    j_lists=[]
+    penalty=10
 
 
-                    # Iteration over the nodes that have not been selected yet
+    for k in list_k:
 
-                    for i in range(len(list_iter_set)):
+        ## debugging values
 
-                        set_s_union_v.append(i)
-                        # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
-                        j_lists.append(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array))
+        # eps=1
+        # h=40
+        # z=0
+        # chi=0
+        #### for ALGO4
 
-                        set_s_union_v=copy.deepcopy(seed_set)
+        list_nodes = list(G_base.nodes())
 
-                    
-                    candidates=my_indices(j_lists, max(j_lists))    
-                    
-                    seed_set.append(random.choice(candidates))
-                    
+        # List that defines the number of rows of X used.
+        # List that defines the number of rows of X used.
+        m_values = [10, 30, 50, 80, 100, 150, 200]
 
-                Expected_spread.append(i_x_s(seed_set, c_matrix_C[z])*(n/m))
-            
-        
-            
-        Expected_spread
-        
-        name_file="k" +str(k) +"alg4_"+str(h) + "epsilon_"+str(eps)+".csv"
-        
-        np.savetxt(name_file, Expected_spread, delimiter=",")
-    
-        
+        # for greedy algortithm
+        # m_values = [400]
+
+        # List of the epsilon values
+        epsilon_values = [float(eps_arg)]
+
+        for eps in epsilon_values:
+
+            rho = (np.exp(eps) + 1) ** -1
+
+            set_of_matrices_array = set_of_matrices(k, rho,algo_arg, penalty)
+
+            # Iteration over the size of the submatrix of X of size m.
+            for h in m_values:
+
+                Expected_spread = []
+
+                c_matrix_C = copy.deepcopy(matrices_X)
+
+                # Iteration over the number of influence cascades
+                # no_ind_cascades
+                for z in range(s_bulk):
+
+                    sub_matrix_X = c_matrix_C[z][0:h, :]
+                    print("iteration  :" + str(z) + " m value" + str(h) + " eps " + str(eps))
+
+                    # Times that algortihm runs for influence cascade, each value f m, and epsilon.
+
+                    for chi in range(1):
+
+                        seed_set = []
+
+                        matrix_x_tilde = generate_matrix_x_tilde(sub_matrix_X, rho, h, n)
+
+                        for w in range(k):
+
+                            # print("seed  :" +str(w))
+
+                            set_s = copy.deepcopy(seed_set)
+
+                            A = set(set_s)
+                            B = set(G_base.nodes())
+
+                            iter_set = B.difference(A)
+
+                            set_s_union_v = copy.deepcopy(seed_set)
+                            list_iter_set = list(iter_set)
+
+                            j_lists = []
+
+                            # Iteration over the nodes that have not been selected yet
+
+                            for i in range(len(list_iter_set)):
+                                set_s_union_v.append(i)
+                                # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
+                                # change for J0_value when no post processing
+
+                                j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array))
+
+                                set_s_union_v = copy.deepcopy(seed_set)
+
+                            candidates = my_indices(j_lists, max(j_lists))
+
+                            seed_set.append(random.choice(candidates))
+
+                        Expected_spread.append(i_x_s(seed_set, c_matrix_C[z]) * (n / m))
+
+                Expected_spread
+
+                name_file = destination_dir + "cnk" + str(k) + "algo"+ algo_arg  + "_"+str(h)+"epsilon_" + str(eps) + ".csv"
+
+                np.savetxt(name_file, Expected_spread, delimiter=",")
+
 
 
 
