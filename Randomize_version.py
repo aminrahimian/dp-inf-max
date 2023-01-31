@@ -19,7 +19,7 @@ k = 4  # Number of the seed set
 p_ic = 0.05  # Probability for Independent Cascade Model
 s_bulk = 50  # Number of Influence cascade model
 # epsilon = 1
-penalty = 0
+penalty = 0   # Penalty value for the regularization method
 
 
 # G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
@@ -203,9 +203,6 @@ def set_of_matrices(k, rho, algo_arg, penalty):
 
         return set_of_matrices
 
-
-
-
 def binary_converter(l, list_nodes):
 
     # Function for test purposes
@@ -270,6 +267,8 @@ def my_indices(lst, item):
 
 if __name__ == "__main__":
 
+    algo_arg="4"
+
     epsilon_values = [0.01, 1]
 
     dict_matrices_x_tilde = {}
@@ -278,99 +277,89 @@ if __name__ == "__main__":
         rho = (np.exp(eps) + 1) ** -1
         dict_matrices_x_tilde[eps] = [generate_matrix_x_tilde(i, rho, m, n) for i in matrices_X]
 
-    list_k = [int(k_arg)]
+    ## debugging values
 
-    penalty=10
+    # eps=1
+    # h=40
+    # z=0
+    # chi=0
+    #### for ALGO4
+
+    list_nodes = list(G_base.nodes())
+
+    # List that defines the number of rows of X used.
+    # List that defines the number of rows of X used.
+    m_values = [10, 30, 50, 80, 100, 150, 200]
+
+    # for greedy algortithm
+    # m_values = [400]
+
+    # List of the epsilon values
 
 
-    for k in list_k:
+    for eps in epsilon_values:
 
-        ## debugging values
+        rho = (np.exp(eps) + 1) ** -1
 
-        # eps=1
-        # h=40
-        # z=0
-        # chi=0
-        #### for ALGO4
+        set_of_matrices_array = set_of_matrices(k, rho, algo_arg, penalty)
 
-        list_nodes = list(G_base.nodes())
+        # Iteration over the size of the submatrix of X of size m.
 
-        # List that defines the number of rows of X used.
-        # List that defines the number of rows of X used.
-        m_values = [10, 30, 50, 80, 100, 150, 200]
+        for h in m_values:
 
-        # for greedy algortithm
-        # m_values = [400]
+            Expected_spread = []
 
-        # List of the epsilon values
-        epsilon_values = [float(eps_arg)]
+            # Iteration over the number of influence cascades
+            # no_ind_cascades
+            for z in range(s_bulk):
 
-        for eps in epsilon_values:
+                sub_matrix_X = dict_matrices_x_tilde[eps][z][0:h, :]
+                print("iteration  :" + str(z) + " m value" + str(h) + " eps " + str(eps))
 
-            rho = (np.exp(eps) + 1) ** -1
+                seed_set = []
 
-            set_of_matrices_array = set_of_matrices(k, rho,algo_arg, penalty)
+                matrix_x_tilde = generate_matrix_x_tilde(sub_matrix_X, rho, h, n)
 
-            # Iteration over the size of the submatrix of X of size m.
-            for h in m_values:
+                for w in range(k):
 
-                Expected_spread = []
+                    # print("seed  :" +str(w))
 
-                c_matrix_C = copy.deepcopy(matrices_X)
+                    set_s = copy.deepcopy(seed_set)
 
-                # Iteration over the number of influence cascades
-                # no_ind_cascades
-                for z in range(s_bulk):
+                    A = set(set_s)
+                    B = set(G_base.nodes())
 
-                    sub_matrix_X = c_matrix_C[z][0:h, :]
-                    print("iteration  :" + str(z) + " m value" + str(h) + " eps " + str(eps))
+                    iter_set = B.difference(A)
 
-                    # Times that algortihm runs for influence cascade, each value f m, and epsilon.
+                    set_s_union_v = copy.deepcopy(seed_set)
+                    list_iter_set = list(iter_set)
 
-                    for chi in range(1):
+                    j_lists = []
 
-                        seed_set = []
+                    # Iteration over the nodes that have not been selected yet
 
-                        matrix_x_tilde = generate_matrix_x_tilde(sub_matrix_X, rho, h, n)
+                    for i in range(len(list_iter_set)):
+                        set_s_union_v.append(i)
+                        # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
+                        # change for J0_value when no post processing
 
-                        for w in range(k):
+                        j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array))
 
-                            # print("seed  :" +str(w))
+                        set_s_union_v = copy.deepcopy(seed_set)
 
-                            set_s = copy.deepcopy(seed_set)
+                    candidates = my_indices(j_lists, max(j_lists))
 
-                            A = set(set_s)
-                            B = set(G_base.nodes())
+                    seed_set.append(random.choice(candidates))
 
-                            iter_set = B.difference(A)
+                Expected_spread.append(i_x_s(seed_set, matrices_X[z]) * (n / m))
 
-                            set_s_union_v = copy.deepcopy(seed_set)
-                            list_iter_set = list(iter_set)
 
-                            j_lists = []
+            ######
+            Expected_spread
 
-                            # Iteration over the nodes that have not been selected yet
+            name_file =  "cnk" + str(k) + "algo"+ algo_arg  + "_"+str(h)+"epsilon_" + str(eps) + ".csv"
 
-                            for i in range(len(list_iter_set)):
-                                set_s_union_v.append(i)
-                                # print("Value of J_ms" +str(j_value(set_s_union_v,h,matrix_x_tilde,set_of_matrices_array)))
-                                # change for J0_value when no post processing
-
-                                j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array))
-
-                                set_s_union_v = copy.deepcopy(seed_set)
-
-                            candidates = my_indices(j_lists, max(j_lists))
-
-                            seed_set.append(random.choice(candidates))
-
-                        Expected_spread.append(i_x_s(seed_set, c_matrix_C[z]) * (n / m))
-
-                Expected_spread
-
-                name_file = destination_dir + "cnk" + str(k) + "algo"+ algo_arg  + "_"+str(h)+"epsilon_" + str(eps) + ".csv"
-
-                np.savetxt(name_file, Expected_spread, delimiter=",")
+            np.savetxt(name_file, Expected_spread, delimiter=",")
 
 
 
