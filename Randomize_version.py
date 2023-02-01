@@ -7,6 +7,8 @@ from scipy.stats import bernoulli
 from scipy.special import comb
 import pickle
 import Generate_data
+from itertools import product
+import multiprocessing
 
 
 # Parameters of the network
@@ -48,12 +50,15 @@ def i_x_s(S,x):
         return sum(temp>=1)
     
 
-def generate_matrix_x_tilde(matrix_X, rho,m,n):
+def generate_matrix_x_tilde(position, eps,m,n,list_matrices_x):
     
     #   Function to generate the matrix x_tilde from matrix X of dimensions mxn
     #   Rho is the flipping probability
+    matrix_X=list_matrices_x[position]
 
-    matrix_x_tilde=np.zeros((m,n))
+    rho = (np.exp(eps) + 1) ** -1
+
+    matrix_x_tilde_output=np.zeros((m,n))
     
     for i in range(m):
         
@@ -65,15 +70,20 @@ def generate_matrix_x_tilde(matrix_X, rho,m,n):
             
             if bernoulli.rvs(p=rho, size=1)[0]==1:
                 
-                matrix_x_tilde[i,j]=flipped_row[j]
+                matrix_x_tilde_output[i,j]=flipped_row[j]
                 
             else:
                 
-                matrix_x_tilde[i,j]=matrix_X[i,j]
+                matrix_x_tilde_output[i,j]=matrix_X[i,j]
+
         
+    file_name='./Matrices_x_tilde/matrix_X_tilde' +str(position) + '.pkl'
+
+    with open(file_name, 'wb') as f:
+        pickle.dump(matrix_x_tilde_output, f)
+
     
-    
-    return matrix_x_tilde
+    return matrix_x_tilde_output
 
 
 def combinatorics(a,b,l_curv,rho, l):
@@ -290,31 +300,61 @@ if __name__ == "__main__":
     list_k = [4]
     m_values = [10, 30, 50, 80, 100, 150, 200]
 
-    dict_set_of_matrices = {}
+    # dict_set_of_matrices = {}
+    #
+    # for eps in epsilon_values:
+    #
+    #     for k in list_k:
+    #
+    #         rho = (np.exp(eps) + 1) ** -1
+    #         dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg)
+    #
+    #
 
-    for eps in epsilon_values:
+    # dict_matrices_x_tilde = {}
+    #
+    # for eps in epsilon_values:
+    #
+    #     dict_matrices_x_tilde[eps] = [generate_matrix_x_tilde(iter, eps,m,n,matrices_X) for i in matrices_X]
+    #
 
-        for k in list_k:
+    list_s_bulk=list(range(s_bulk))
+    arguments = list(product(list_s_bulk, epsilon_values))
+    arguments = [list(i) for i in arguments]
 
-            rho = (np.exp(eps) + 1) ** -1
-            dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg)
-
-
-
-    dict_matrices_x_tilde = {}
-
-    for eps in epsilon_values:
-        rho = (np.exp(eps) + 1) ** -1
-        dict_matrices_x_tilde[eps] = [generate_matrix_x_tilde(i, rho, m, n) for i in matrices_X]
-
-    k=4
-    eps=0.01
-    iter=1
-    h=10
-
-    randomize_response(k, eps, h, iter, dict_set_of_matrices, dict_matrices_x_tilde, penalty)
-
-    dict_set_of_matrices.keys()
-    print(dict_set_of_matrices.keys())
+    # generate_matrix_x_tilde(1, 0.01, m, n, matrices_X)
 
 
+    new_args=[]
+    for i in range(len(arguments)):
+        temp=arguments[i]
+        temp.append(m)
+        temp.append(n)
+        temp.append(matrices_X)
+        new_args.append(temp)
+
+    processes = []
+
+    for ind in new_args:
+        p = multiprocessing.Process(target=generate_matrix_x_tilde, args=ind)
+        p.start()
+        processes.append(p)
+
+    for process in processes:
+        process.join()
+#
+
+
+
+
+# k=4
+#     eps=0.01
+#     iter=1
+#     h=10
+#
+#     randomize_response(k, eps, h, iter, dict_set_of_matrices, dict_matrices_x_tilde, penalty)
+#
+#     dict_set_of_matrices.keys()
+#     print(dict_set_of_matrices.keys())
+#
+#
