@@ -19,7 +19,7 @@ n = 2426  # Number of nosde
 m = 250  # Number of nodes samples to built matrix X for each influence cascade
 k = 4  # Number of the seed set
 p_ic = 0.05  # Probability for Independent Cascade Model
-s_bulk = 2  # Number of Influence cascade model
+s_bulk = 5  # Number of Influence cascade model
 # epsilon = 1
 penalty = 0   # Penalty value for the regularization method
 
@@ -77,7 +77,7 @@ def generate_matrix_x_tilde(position, eps,m,n,list_matrices_x):
                 matrix_x_tilde_output[i,j]=matrix_X[i,j]
 
         
-    file_name='./Matrices_x_tilde/matrix_X_tilde' +str(position) + '.pkl'
+    file_name='./Matrices_x_tilde/matrix_X_tilde' +str(position) + 'eps_' +str(eps)+'.pkl'
 
     with open(file_name, 'wb') as f:
         pickle.dump(matrix_x_tilde_output, f)
@@ -233,16 +233,16 @@ def my_indices(lst, item):
    return [i for i, x in enumerate(lst) if x == item]
 
 
-def randomize_response(k,eps,h,iter,dict_set_of_matrices,dict_matrices_x_tilde,penalty):
+def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_tilde,penalty,matrices_X, algo_arg):
 
     rho = (np.exp(eps) + 1) ** -1
     set_of_matrices_array= dict_set_of_matrices[(k, eps, algo_arg)]
 
     Expected_spread = []
 
-    matrix_x_tilde = dict_matrices_x_tilde[eps][iter][0:h, :]
+    matrix_x_tilde = dict_matrices_x_tilde[eps][position][0:h, :]
 
-    print("iteration  :" + str(iter) + " m value" + str(h) + " eps " + str(eps))
+    print("iteration  :" + str(position) + " m value" + str(h) + " eps " + str(eps))
 
     for _ in range(5):
 
@@ -277,77 +277,135 @@ def randomize_response(k,eps,h,iter,dict_set_of_matrices,dict_matrices_x_tilde,p
 
             seed_set.append(random.choice(candidates))
 
-        Expected_spread.append(i_x_s(seed_set, matrices_X[iter]) * (n / m))
+        Expected_spread.append(i_x_s(seed_set, matrices_X[position]) * (n / m))
 
-    name_file = "./alg" +str(algo_arg)+ "/cnk" + str(k) + "alg3_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(iter) + ".csv"
+    name_file = "./alg" +str(algo_arg)+ "/cnk" + str(k) + "alg3_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(position) + ".csv"
 
 
     np.savetxt(name_file, Expected_spread, delimiter=",")
 
 
+def load_matrices_tilde(position, eps):
+
+    file_name ='./Matrices_x_tilde/matrix_X_tilde' +str(position) + 'eps_' +str(eps)+'.pkl'
+
+    with open(file_name, 'rb') as f:
+        matrix_X = pickle.load(f)
+
+    return matrix_X
+
+def save_list_matrices_x_tilde(list_matrices_x_tilde):
+
+    file_name = 'Matrices_X_tilde.pkl'
+
+    with open(file_name, 'wb') as f:
+        pickle.dump(list_matrices_x_tilde, f)
 
 
 if __name__ == "__main__":
 
-
+    save_data_x_tilde=False
     matrices_X = Generate_data.load_matrices_X()
-    matrices_X=matrices_X[0:5]
+
 
     algo_arg = 4
     penalty = 0
 
     epsilon_values = [0.01]
     list_k = [4]
-    m_values = [10, 30, 50, 80, 100, 150, 200]
+    m_values = [10,]
 
-    # dict_set_of_matrices = {}
-    #
-    # for eps in epsilon_values:
-    #
-    #     for k in list_k:
-    #
-    #         rho = (np.exp(eps) + 1) ** -1
-    #         dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg)
-    #
-    #
+    list_s_bulk = list(range(s_bulk))
 
-    # dict_matrices_x_tilde = {}
-    #
-    # for eps in epsilon_values:
-    #
-    #     dict_matrices_x_tilde[eps] = [generate_matrix_x_tilde(iter, eps,m,n,matrices_X) for i in matrices_X]
-    #
+    if save_data_x_tilde:
 
-    list_s_bulk=list(range(s_bulk))
-    arguments = list(product(list_s_bulk, epsilon_values))
+        list_s_bulk=list(range(s_bulk))
+        arguments = list(product(list_s_bulk, epsilon_values))
+        arguments = [list(i) for i in arguments]
+
+        # generate_matrix_x_tilde(1, 0.01, m, n, matrices_X)
+
+
+        new_args=[]
+        for i in range(len(arguments)):
+            temp=arguments[i]
+            temp.append(m)
+            temp.append(n)
+            temp.append(matrices_X)
+            new_args.append(temp)
+
+        processes = []
+
+        for ind in new_args:
+            p = multiprocessing.Process(target=generate_matrix_x_tilde, args=ind)
+            p.start()
+            processes.append(p)
+
+        for process in processes:
+            process.join()
+
+
+        dict_matrices_x_tilde={}
+
+        for eps in epsilon_values:
+
+            temp_list_matrix=[]
+
+            for i in list_s_bulk:
+
+                temp_list_matrix.append(load_matrices_tilde(i, eps))
+
+            dict_matrices_x_tilde[eps]=temp_list_matrix
+
+
+        save_list_matrices_x_tilde(dict_matrices_x_tilde)
+
+    file_name = "Matrices_X_tilde.pkl"
+
+    with open(file_name, 'rb') as f:
+        dict_matrices_x_tilde = pickle.load(f)
+
+
+
+    dict_set_of_matrices = {}
+
+    for eps in epsilon_values:
+
+        for k in list_k:
+
+            rho = (np.exp(eps) + 1) ** -1
+            dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg)
+
+
+
+    arguments = list(product(list_k, epsilon_values, m_values,list_s_bulk))
+
     arguments = [list(i) for i in arguments]
 
     # generate_matrix_x_tilde(1, 0.01, m, n, matrices_X)
 
-
-    new_args=[]
-    for i in range(len(arguments)):
-        temp=arguments[i]
-        temp.append(m)
-        temp.append(n)
-        temp.append(matrices_X)
-        new_args.append(temp)
-
     processes = []
 
+    new_args = []
+    for i in range(len(arguments)):
+        temp = arguments[i]
+        temp.append(dict_set_of_matrices)
+        temp.append(dict_matrices_x_tilde)
+        temp.append(penalty)
+        temp.append(matrices_X)
+        temp.append(algo_arg)
+        new_args.append(temp)
+
     for ind in new_args:
-        p = multiprocessing.Process(target=generate_matrix_x_tilde, args=ind)
+        p = multiprocessing.Process(target=randomize_response, args=ind)
         p.start()
         processes.append(p)
 
     for process in processes:
         process.join()
-#
 
 
 
-
-# k=4
 #     eps=0.01
 #     iter=1
 #     h=10
