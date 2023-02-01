@@ -34,7 +34,6 @@ dictionary_mapping = dict(zip(previous_n_labels, new_labes))
 G_base = nx.relabel_nodes(G_base, dictionary_mapping)
 
 
-
 def i_x_s(S,x): 
     
     if S==[]:
@@ -75,12 +74,6 @@ def generate_matrix_x_tilde(matrix_X, rho,m,n):
     
     
     return matrix_x_tilde
-    
-
-
-# rho=(np.exp(epsilon)+1)**-1
-
-# matrix_x_tilde=generate_matrix_x_tilde(matrix_X, rho,m,n)
 
 
 def combinatorics(a,b,l_curv,rho, l):
@@ -143,7 +136,7 @@ def f_tilde_a(seed_set,m,a,matrix_x_tilde):
 def set_of_matrices(k, rho, algo_arg):
 
     # Function that returns all the inverse matrices X in function of the seed set k
-    if not algo_arg=="5":
+    if not algo_arg==5:
 
         set_of_matrices = []
 
@@ -223,8 +216,6 @@ def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in, algo_arg, penalty):
 
     return n*(1-f_0)
 
-
-
 def my_indices(lst, item):
 
     # Auxiliary function to randomize selection process when max function is tight.
@@ -232,13 +223,83 @@ def my_indices(lst, item):
    return [i for i, x in enumerate(lst) if x == item]
 
 
+def randomize_response(k,eps,h,iter,dict_set_of_matrices,dict_matrices_x_tilde,penalty):
+
+    rho = (np.exp(eps) + 1) ** -1
+    set_of_matrices_array= dict_set_of_matrices[(k, eps, algo_arg)]
+
+    Expected_spread = []
+
+    matrix_x_tilde = dict_matrices_x_tilde[eps][iter][0:h, :]
+
+    print("iteration  :" + str(iter) + " m value" + str(h) + " eps " + str(eps))
+
+    for _ in range(5):
+
+        seed_set = []
+
+        for w in range(k):
+
+            # print("seed  :" +str(w))
+
+            set_s = copy.deepcopy(seed_set)
+
+            A = set(set_s)
+            B = set(G_base.nodes())
+
+            iter_set = B.difference(A)
+
+            set_s_union_v = copy.deepcopy(seed_set)
+            list_iter_set = list(iter_set)
+
+            j_lists = []
+
+            # Iteration over the nodes that have not been selected yet
+
+            for i in range(len(list_iter_set)):
+                set_s_union_v.append(i)
+
+                j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array, algo_arg, penalty))
+
+                set_s_union_v = copy.deepcopy(seed_set)
+
+            candidates = my_indices(j_lists, max(j_lists))
+
+            seed_set.append(random.choice(candidates))
+
+        Expected_spread.append(i_x_s(seed_set, matrices_X[iter]) * (n / m))
+
+    name_file = "./alg" +str(algo_arg)+ "/cnk" + str(k) + "alg3_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(iter) + ".csv"
+
+
+    np.savetxt(name_file, Expected_spread, delimiter=",")
+
+
+
+
 if __name__ == "__main__":
 
+
     matrices_X = Generate_data.load_matrices_X()
+    matrices_X=matrices_X[0:5]
 
-    algo_arg="4"
+    algo_arg = 4
+    penalty = 0
 
-    epsilon_values = [0.01, 1]
+    epsilon_values = [0.01]
+    list_k = [4]
+    m_values = [10, 30, 50, 80, 100, 150, 200]
+
+    dict_set_of_matrices = {}
+
+    for eps in epsilon_values:
+
+        for k in list_k:
+
+            rho = (np.exp(eps) + 1) ** -1
+            dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg)
+
+
 
     dict_matrices_x_tilde = {}
 
@@ -246,72 +307,14 @@ if __name__ == "__main__":
         rho = (np.exp(eps) + 1) ** -1
         dict_matrices_x_tilde[eps] = [generate_matrix_x_tilde(i, rho, m, n) for i in matrices_X]
 
-    list_nodes = list(G_base.nodes())
+    k=4
+    eps=0.01
+    iter=1
+    h=10
 
-    # List that defines the number of rows of X used.
+    randomize_response(k, eps, h, iter, dict_set_of_matrices, dict_matrices_x_tilde, penalty)
 
-    m_values = [10, 30, 50, 80, 100, 150, 200]
-
-    for eps in epsilon_values:
-
-        rho = (np.exp(eps) + 1) ** -1
-
-        set_of_matrices_array = set_of_matrices(k, rho, algo_arg, penalty)
-
-        # Iteration over the size of the submatrix of X of size m.
-
-        for h in m_values:
-
-            Expected_spread = []
-
-            # Iteration over the number of influence cascades
-            # no_ind_cascades
-            for z in range(s_bulk):
-
-                matrix_x_tilde = dict_matrices_x_tilde[eps][z][0:h, :]
-                print("iteration  :" + str(z) + " m value" + str(h) + " eps " + str(eps))
-
-                seed_set = []
-
-                for w in range(k):
-
-                    # print("seed  :" +str(w))
-
-                    set_s = copy.deepcopy(seed_set)
-
-                    A = set(set_s)
-                    B = set(G_base.nodes())
-
-                    iter_set = B.difference(A)
-
-                    set_s_union_v = copy.deepcopy(seed_set)
-                    list_iter_set = list(iter_set)
-
-                    j_lists = []
-
-                    # Iteration over the nodes that have not been selected yet
-
-                    for i in range(len(list_iter_set)):
-                        set_s_union_v.append(i)
-
-                        j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array,algo_arg, penalty))
-
-                        set_s_union_v = copy.deepcopy(seed_set)
-
-                    candidates = my_indices(j_lists, max(j_lists))
-
-                    seed_set.append(random.choice(candidates))
-
-                Expected_spread.append(i_x_s(seed_set, matrices_X[z]) * (n / m))
-
-
-            ######
-            Expected_spread
-
-            name_file =  "cnk" + str(k) + "algo"+ algo_arg  + "_"+str(h)+"epsilon_" + str(eps) + ".csv"
-
-            np.savetxt(name_file, Expected_spread, delimiter=",")
-
-
+    dict_set_of_matrices.keys()
+    print(dict_set_of_matrices.keys())
 
 
