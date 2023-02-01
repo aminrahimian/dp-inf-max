@@ -17,7 +17,7 @@ n = 2426  # Number of nosde
 m = 250  # Number of nodes samples to built matrix X for each influence cascade
 k = 4  # Number of the seed set
 p_ic = 0.05  # Probability for Independent Cascade Model
-s_bulk = 50  # Number of Influence cascade model
+s_bulk = 2  # Number of Influence cascade model
 # epsilon = 1
 penalty = 0   # Penalty value for the regularization method
 
@@ -32,8 +32,6 @@ previous_n_labels = G_base.nodes()
 new_labes = list(range(len(previous_n_labels)))
 dictionary_mapping = dict(zip(previous_n_labels, new_labes))
 G_base = nx.relabel_nodes(G_base, dictionary_mapping)
-
-matrices_X = Generate_data.load_matrix_X()
 
 
 
@@ -226,13 +224,6 @@ def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in, algo_arg, penalty):
     return n*(1-f_0)
 
 
-def j0_value(seed_set,m,matrix_x_tilde,set_of_matrices_in):
-
-
-    f_tilde=f_tilded(seed_set, matrix_x_tilde,m)
-
-    return n*(1-f_tilde)
-
 
 def my_indices(lst, item):
 
@@ -242,6 +233,8 @@ def my_indices(lst, item):
 
 
 if __name__ == "__main__":
+
+    matrices_X = Generate_data.load_matrices_X()
 
     algo_arg="4"
 
@@ -302,7 +295,6 @@ if __name__ == "__main__":
                         set_s_union_v.append(i)
 
                         j_lists.append(j_value(set_s_union_v, h, matrix_x_tilde, set_of_matrices_array,algo_arg, penalty))
-
 
                         set_s_union_v = copy.deepcopy(seed_set)
 
