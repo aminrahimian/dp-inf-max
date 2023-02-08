@@ -5,19 +5,65 @@ import random
 import copy
 import pickle
 from scipy.stats import bernoulli
+# import matplotlib.pyplot as plt
+import multiprocessing
+import time
 
 # Parameters of the network
+# Parameters of College Network
 
-n = 1005                    # Number of nodes
-m = 100                     # Number of nodes samples to built matrix X for each influence cascade
+
+n = 2426                    # Number of nosde
+m = 250                     # Number of nodes samples to built matrix X for each influence cascade
 k = 4                       # Number of the seed set
-p_ic = 0.03                 # Probability for Independent Cascade Model
-s_bulk=40                   # Number of Influence cascade model
+p_ic = 0.05                 # Probability for Independent Cascade Model
+s_bulk= 80                 # Number of Influence cascade model
 # epsilon = 1e-1
 
 
+# # Parameters of the network
+# # Parameters of Tweeter Network
+# # #
+# n = 3225                    # Number of nodes
+# m = 250                     # Number of nodes samples to built matrix X for each influence cascade
+# k = 8                       # Number of the seed set
+# p_ic = 0.3                # Probability for Independent Cascade Model
+# s_bulk=10                   # Number of Influence cascade model
+# # # epsilon = 1e-1
+# #
 
-G_base = nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
+
+    #
+# G_base = nx.read_edgelist("Contact-diaries-network_data_2013.csv.gz",nodetype=int, data=(("Type", str),))
+# G_base=G_base.to_undirected()
+
+
+
+
+G_base = nx.read_edgelist("soc-hamsterster_v2.edgelist.txt")
+G_base=G_base.to_undirected()
+
+
+
+# G_base = nx.read_edgelist("rt_occupy_v2.txt")
+# G_base=G_base.to_undirected()
+previous_n_labels=G_base.nodes()
+new_labes=list(range(len(previous_n_labels)))
+dictionary_mapping = dict(zip(previous_n_labels, new_labes))
+G_base = nx.relabel_nodes(G_base, dictionary_mapping)
+
+
+
+
+# previous_n_labels=G_base.nodes()
+# new_labes=list(range(len(previous_n_labels)))
+# dictionary_mapping = dict(zip(previous_n_labels, new_labes))
+# G_base = nx.relabel_nodes(G_base, dictionary_mapping)
+#
+
+
+# deg_dis=[G_base.degree(i) for i in range(1,1899)]
+
 
 
 def live_edges_saving(n, p, G):
@@ -99,34 +145,117 @@ def built_matrix_X(m, n, m_live_edges):
     return matrix_X
 
 
-def bulk_matrices(s_bulk, m_live_edges, m, n, p_ic):
+def generate_random_order(G_base):
+
+    order_nodes=list(G_base.nodes())
+    np.random.shuffle(order_nodes)
+
+    file_name = 'order_nodes.pkl'
+
+    with open(file_name, 'wb') as f:
+        pickle.dump(order_nodes, f)
+
+    return order_nodes
+
+
+def load_order_nodes():
+
+    with open('order_nodes.pkl', 'rb') as f:
+        order_nodes = pickle.load(f)
+
+    return order_nodes
+
+
+
+
+
+def bulk_matrices( m, n, p_ic,iter):
     #   This function generates and save a set of X matrices.
     #   The number of matrices are defined by bulk_matrices parameter
     #   Return a list with the matrices X and save it as pkl file
 
-    bulk_matrices = []
 
-    for i in range(s_bulk):
-        G_float = copy.deepcopy(G_base)
-        m_live_edges = save_graph_in_list(m, G_float, p_ic)
-        bulk_matrices.append(built_matrix_X(m, n, m_live_edges))
-
-    with open('matrices_X.pkl', 'wb') as f:
-        pickle.dump(bulk_matrices, f)
-
-    return bulk_matrices
+    G_float = copy.deepcopy(G_base)
+    m_live_edges = save_graph_in_list(m, G_float, p_ic)
+    output_matrix= (built_matrix_X(m, n, m_live_edges))
 
 
+    file_name='./Matricesx/matrices_X_' +str(iter) + '.pkl'
 
-def load_matrix_X():
+    with open(file_name, 'wb') as f:
+        pickle.dump(output_matrix, f)
+
+    return output_matrix
+
+
+
+
+def load_matrix_X(iter):
     # Function to load pickle file with already generate X matrices
-    with open('matrices_X.pkl', 'rb') as f:
+
+    file_name = './Matricesx/matrices_X_' + str(iter) + '.pkl'
+
+    with open(file_name, 'rb') as f:
+        matrix_X = pickle.load(f)
+
+    return matrix_X
+
+
+def load_matrices_X():
+    # Function to load pickle file with already generate X matrices
+
+    file_name = 'Matrix_X.pkl'
+
+    with open(file_name, 'rb') as f:
         matrix_X = pickle.load(f)
 
     return matrix_X
 
 
 
+
+
 if __name__ == "__main__":
 
-    bulk_matrices()
+    processes=[]
+
+    for t in range(s_bulk):
+
+        p=multiprocessing.Process(target=bulk_matrices, args=[ m, n, p_ic,t])
+        p.start()
+        processes.append(p)
+
+
+    for process in processes:
+
+        process.join()
+
+    # p1=multiprocessing.Process(target=bulk_matrices, args=[ m, n, p_ic,0])
+    # p2=multiprocessing.Process(target=bulk_matrices, args=[ m, n, p_ic,1])
+    #
+    # p1.start()
+    # p2.start()
+    #
+    # p1.join()
+    # p2.join()
+
+    Matrix_X=[]
+
+    for i in range(s_bulk):
+
+        Matrix_X.append(load_matrix_X(i))
+
+
+    file_name = 'Matrix_X' + '.pkl'
+
+    with open(file_name, 'wb') as f:
+
+        pickle.dump(Matrix_X,f)
+
+
+
+    with open('Matrix_X.pkl', 'rb') as f:
+        matrix_X = pickle.load(f)
+
+    # bulk_matrices(s_bulk, m, n, p_ic,1)
+
