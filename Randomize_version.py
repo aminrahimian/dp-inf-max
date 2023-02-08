@@ -18,12 +18,12 @@ from multiprocessing import Pool
 n = 2426  # Number of nosde
 m = 250  # Number of nodes samples to built matrix X for each influence cascade
 p_ic = 0.05  # Probability for Independent Cascade Model
-s_bulk = 3  # Number of Influence cascade model
+s_bulk = 40  # Number of Influence cascade model
 # epsilon = 1
 penalty = 0   # Penalty value for the regularization method
-runs_alg = 2
+runs_alg = 5
 algo_arg = 4
-number_CPU = 8
+number_CPU = 16
 
 
 # G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
@@ -312,6 +312,27 @@ def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_til
     return 1
 
 
+def m_zero(runs_alg,s_bulk,algo_arg,epsilon_values,list_k):
+
+    #   Function for expected value spread when no information is used
+    for k in list_k:
+
+        for eps in epsilon_values:
+
+            for iter in range(s_bulk):
+
+                vals = []
+
+                for o in range(runs_alg):
+
+                    indices = list(G_base.nodes())
+                    greedy_seeds = list(np.random.choice(indices, size=k, replace=False))
+                    vals.append(i_x_s(greedy_seeds, matrices_X[iter]) * (n / m))
+
+                name_file = "/Users/cah259/Documents/alg" +str(algo_arg)+ "/cnk" + str(k) + "alg"+str(algo_arg)+"_"+str(0) +"epsilon_" + str(eps) + "iter_" + str(iter) + ".csv"
+
+                np.savetxt(name_file, vals, delimiter=",")
+
 
 
 def load_matrices_tilde(position, eps):
@@ -338,11 +359,13 @@ if __name__ == "__main__":
     order_nodes=Generate_data.load_order_nodes()
 
 
-    epsilon_values = [0.01]
-    list_k = [4]
-    m_values = [10,30]
+    epsilon_values = [0.01,0.1,0.8]
+    list_k = [8,12]
+    m_values = [10,30,50,80,100,150,200]
 
     list_s_bulk = list(range(s_bulk))
+
+    m_zero(runs_alg, s_bulk, algo_arg, epsilon_values, list_k)
 
     if save_data_x_tilde:
 
