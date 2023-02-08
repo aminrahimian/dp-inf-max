@@ -9,7 +9,7 @@ import pickle
 import Generate_data
 from itertools import product
 import multiprocessing
-
+from multiprocessing import Pool
 
 # Parameters of the network
 
@@ -19,9 +19,12 @@ n = 2426  # Number of nosde
 m = 250  # Number of nodes samples to built matrix X for each influence cascade
 k = 4  # Number of the seed set
 p_ic = 0.05  # Probability for Independent Cascade Model
-s_bulk = 5  # Number of Influence cascade model
+s_bulk = 3  # Number of Influence cascade model
 # epsilon = 1
 penalty = 0   # Penalty value for the regularization method
+runs_alg = 20
+algo_arg = 4
+number_CPU = 16
 
 
 # G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
@@ -143,10 +146,10 @@ def f_tilde_a(seed_set,m,a,matrix_x_tilde):
     return cont*(1/m)
 
 
-def set_of_matrices(k, rho, algo_arg):
+def set_of_matrices(k, rho, algo_arg,penalty):
 
     # Function that returns all the inverse matrices X in function of the seed set k
-    if not algo_arg==5:
+    if algo_arg==4:
 
         set_of_matrices = []
 
@@ -162,7 +165,7 @@ def set_of_matrices(k, rho, algo_arg):
         return set_of_matrices
 
 
-    else:
+    elif algo_arg==5:
 
         set_of_matrices = []
 
@@ -172,6 +175,21 @@ def set_of_matrices(k, rho, algo_arg):
             set_of_matrices.append(np.eye(dim_matrix_c))
 
         return set_of_matrices
+
+    else:
+        set_of_matrices = []
+
+        for o in range(k + 1):
+            dim_matrix_c = o + 1
+            matrix_C = np.zeros((dim_matrix_c, dim_matrix_c))
+            matrix_C_up = fill_matrix_c(matrix_C, dim_matrix_c, rho, o)
+            # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
+            matrix_penalty=penalty*np.eye(dim_matrix_c)
+            psd_inverse = np.linalg.inv(matrix_C_up +matrix_penalty)
+            set_of_matrices.append(psd_inverse)
+
+        return set_of_matrices
+
 
 def binary_converter(l, list_nodes):
 
@@ -213,7 +231,7 @@ def f_tilded(seed_set, matrix_x_tilde,m):
 def j_value(seed_set,m,matrix_x_tilde,set_of_matrices_in, algo_arg, penalty):
 
     #   Function to calculate the value of f_0 using the seed set and matrix_x_tilde
-    if not algo_arg=="6":
+    if not algo_arg==6:
 
         f_tilde=f_tilded(seed_set, matrix_x_tilde,m)
         f_0=np.matmul(set_of_matrices_in[len(seed_set)], f_tilde)[0]
@@ -244,7 +262,8 @@ def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_til
 
     print("iteration  :" + str(position) + " m value" + str(h) + " eps " + str(eps))
 
-    for _ in range(5):
+
+    for _ in range(runs_alg):
 
         seed_set = []
 
@@ -279,10 +298,18 @@ def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_til
 
         Expected_spread.append(i_x_s(seed_set, matrices_X[position]) * (n / m))
 
-    name_file = "./alg" +str(algo_arg)+ "/cnk" + str(k) + "alg3_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(position) + ".csv"
+    name_file = "/Users/cah259/Documents/alg" +str(algo_arg)+ "/cnk" + str(k) + "alg" +str(algo_arg)+"_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(position) + ".csv"
+
+    # np.savetxt(name_file, Expected_spread, delimiter=",")
+
+    with open(name_file, 'wb') as f:
+        np.savetxt(f, Expected_spread, fmt='%-7.8f', delimiter=',')
+
+    return 1
 
 
-    np.savetxt(name_file, Expected_spread, delimiter=",")
+
+
 
 
 def load_matrices_tilde(position, eps):
@@ -308,12 +335,10 @@ if __name__ == "__main__":
     matrices_X = Generate_data.load_matrices_X()
 
 
-    algo_arg = 4
-    penalty = 0
 
     epsilon_values = [0.01]
     list_k = [4]
-    m_values = [10,]
+    m_values = [10,30]
 
     list_s_bulk = list(range(s_bulk))
 
@@ -366,7 +391,6 @@ if __name__ == "__main__":
         dict_matrices_x_tilde = pickle.load(f)
 
 
-
     dict_set_of_matrices = {}
 
     for eps in epsilon_values:
@@ -374,9 +398,7 @@ if __name__ == "__main__":
         for k in list_k:
 
             rho = (np.exp(eps) + 1) ** -1
-            dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg)
-
-
+            dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg,penalty)
 
     arguments = list(product(list_k, epsilon_values, m_values,list_s_bulk))
 
@@ -396,13 +418,23 @@ if __name__ == "__main__":
         temp.append(algo_arg)
         new_args.append(temp)
 
-    for ind in new_args:
-        p = multiprocessing.Process(target=randomize_response, args=ind)
-        p.start()
-        processes.append(p)
+    # for ind in new_args:
+    #     p = multiprocessing.Process(target=randomize_response, args=ind)
+    #     p.start()
+    #     processes.append(p)
+    #
+    # for process in processes:
+    #     process.join()
 
-    for process in processes:
-        process.join()
+
+
+    with multiprocessing.Pool(processes=number_CPU) as pool:
+        pool.starmap(randomize_response, new_args)
+
+    pool.close()
+    pool.join()
+
+
 
 
 
