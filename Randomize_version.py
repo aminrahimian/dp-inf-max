@@ -17,14 +17,13 @@ from multiprocessing import Pool
 
 n = 2426  # Number of nosde
 m = 250  # Number of nodes samples to built matrix X for each influence cascade
-k = 4  # Number of the seed set
 p_ic = 0.05  # Probability for Independent Cascade Model
 s_bulk = 3  # Number of Influence cascade model
 # epsilon = 1
 penalty = 0   # Penalty value for the regularization method
-runs_alg = 20
+runs_alg = 2
 algo_arg = 4
-number_CPU = 16
+number_CPU = 8
 
 
 # G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
@@ -251,7 +250,8 @@ def my_indices(lst, item):
    return [i for i, x in enumerate(lst) if x == item]
 
 
-def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_tilde,penalty,matrices_X, algo_arg):
+
+def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_tilde,penalty,matrices_X, algo_arg, order_nodes):
 
     rho = (np.exp(eps) + 1) ** -1
     set_of_matrices_array= dict_set_of_matrices[(k, eps, algo_arg)]
@@ -294,7 +294,11 @@ def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_til
 
             candidates = my_indices(j_lists, max(j_lists))
 
-            seed_set.append(random.choice(candidates))
+            sub_order = [order_nodes.index(i) for i in candidates]
+
+            seed_set.append(order_nodes[min(sub_order)])
+
+
 
         Expected_spread.append(i_x_s(seed_set, matrices_X[position]) * (n / m))
 
@@ -306,8 +310,6 @@ def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_til
         np.savetxt(f, Expected_spread, fmt='%-7.8f', delimiter=',')
 
     return 1
-
-
 
 
 
@@ -333,7 +335,7 @@ if __name__ == "__main__":
 
     save_data_x_tilde=False
     matrices_X = Generate_data.load_matrices_X()
-
+    order_nodes=Generate_data.load_order_nodes()
 
 
     epsilon_values = [0.01]
@@ -400,6 +402,8 @@ if __name__ == "__main__":
             rho = (np.exp(eps) + 1) ** -1
             dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg,penalty)
 
+
+
     arguments = list(product(list_k, epsilon_values, m_values,list_s_bulk))
 
     arguments = [list(i) for i in arguments]
@@ -416,6 +420,7 @@ if __name__ == "__main__":
         temp.append(penalty)
         temp.append(matrices_X)
         temp.append(algo_arg)
+        temp.append(order_nodes)
         new_args.append(temp)
 
     # for ind in new_args:
