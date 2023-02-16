@@ -10,6 +10,8 @@ import Generate_data
 from itertools import product
 import multiprocessing
 from multiprocessing import Pool
+import sys
+import os
 
 # Parameters of the network
 
@@ -18,12 +20,13 @@ from multiprocessing import Pool
 n = 2426  # Number of nosde
 m = 250  # Number of nodes samples to built matrix X for each influence cascade
 p_ic = 0.05  # Probability for Independent Cascade Model
-s_bulk = 40  # Number of Influence cascade model
+s_bulk = 80  # Number of Influence cascade model
 # epsilon = 1
 penalty = 0   # Penalty value for the regularization method
 runs_alg = 5
 algo_arg = 4
-number_CPU = 16
+number_CPU = 8
+data_path_directory="/Users/carloshurtado/Documents"
 
 
 # G_base=nx.read_edgelist("email-Eu-core.txt.gz", nodetype=int, data=(("Type", str),))
@@ -176,6 +179,7 @@ def set_of_matrices(k, rho, algo_arg,penalty):
         return set_of_matrices
 
     else:
+
         set_of_matrices = []
 
         for o in range(k + 1):
@@ -251,17 +255,17 @@ def my_indices(lst, item):
 
 
 
-def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_tilde,penalty,matrices_X, algo_arg, order_nodes):
+def randomize_response(k,eps,h,position,algo_arg,penalty,dict_set_of_matrices,dict_matrices_x_tilde,matrices_X, order_nodes):
 
     rho = (np.exp(eps) + 1) ** -1
     set_of_matrices_array= dict_set_of_matrices[(k, eps, algo_arg)]
 
     Expected_spread = []
 
-    matrix_x_tilde = dict_matrices_x_tilde[eps][position][0:h, :]
+    sample_rows = np.random.choice(list(range(m)), size=h, replace=False)
+    matrix_x_tilde = dict_matrices_x_tilde[eps][position][sample_rows, :]
 
-    print("iteration  :" + str(position) + " m value" + str(h) + " eps " + str(eps))
-
+    print("iteration  :" + str(position) + " m value" + str(h) + " eps " + str(eps) + "alg " + str(algo_arg))
 
     for _ in range(runs_alg):
 
@@ -302,36 +306,77 @@ def randomize_response(k,eps,h,position,dict_set_of_matrices,dict_matrices_x_til
 
         Expected_spread.append(i_x_s(seed_set, matrices_X[position]) * (n / m))
 
-    name_file = "/Users/cah259/Documents/alg" +str(algo_arg)+ "/cnk" + str(k) + "alg" +str(algo_arg)+"_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(position) + ".csv"
+    if ((algo_arg==4) or (algo_arg==3)):
 
-    # np.savetxt(name_file, Expected_spread, delimiter=",")
+        newpath = data_path_directory+ "/alg" +str(algo_arg)
 
-    with open(name_file, 'wb') as f:
-        np.savetxt(f, Expected_spread, fmt='%-7.8f', delimiter=',')
+        if not os.path.exists(newpath):
+            os.makedirs(newpath)
 
-    return 1
+        name_file = data_path_directory + "/alg" +str(algo_arg)+ "/cnk" + str(k) + "alg" +str(algo_arg)+"_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(position) + ".csv"
+
+        # np.savetxt(name_file, Expected_spread, delimiter=",")
+
+        with open(name_file, 'wb') as f:
+            np.savetxt(f, Expected_spread, fmt='%-7.8f', delimiter=',')
+
+        return(1)
 
 
-def m_zero(runs_alg,s_bulk,algo_arg,epsilon_values,list_k):
+    else:
 
-    #   Function for expected value spread when no information is used
+        newpath =  data_path_directory+ "/alg6"
+
+        if not os.path.exists(newpath):
+            os.makedirs(newpath)
+
+        name_file =  data_path_directory+ "/alg6/cnk" + str(k) + "alg" + str(
+            algo_arg) + "_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(position) + ".csv"
+
+        # np.savetxt(name_file, Expected_spread, delimiter=",")
+
+        with open(name_file, 'wb') as f:
+            np.savetxt(f, Expected_spread, fmt='%-7.8f', delimiter=',')
+
+        return (1)
+
+
+def m_zero(runs_alg,s_bulk,algo_arg_list,epsilon_values,list_k):
+
     for k in list_k:
 
-        for eps in epsilon_values:
+        for iter in range(s_bulk):
 
-            for iter in range(s_bulk):
+            vals=[]
+            for _ in range(10):
 
-                vals = []
+                indices = list(G_base.nodes())
 
-                for o in range(runs_alg):
-
-                    indices = list(G_base.nodes())
+                if k==4:
                     greedy_seeds = list(np.random.choice(indices, size=k, replace=False))
                     vals.append(i_x_s(greedy_seeds, matrices_X[iter]) * (n / m))
 
-                name_file = "/Users/cah259/Documents/alg" +str(algo_arg)+ "/cnk" + str(k) + "alg"+str(algo_arg)+"_"+str(0) +"epsilon_" + str(eps) + "iter_" + str(iter) + ".csv"
+                elif k==8:
 
-                np.savetxt(name_file, vals, delimiter=",")
+                    greedy_seeds = list(np.random.choice(indices, size=5, replace=False))
+                    vals.append(i_x_s(greedy_seeds, matrices_X[iter]) * (n / m))
+
+                elif k==12:
+
+                    greedy_seeds = list(np.random.choice(indices, size=6, replace=False))
+                    vals.append(i_x_s(greedy_seeds, matrices_X[iter]) * (n / m))
+
+            for eps in epsilon_values:
+
+                for algo_arg in algo_arg_list:
+
+                    name_file = data_path_directory+"/alg" + str(algo_arg) + "/cnk" + str(k) + "alg" + str(
+                        algo_arg) + "_" + str(0) + "epsilon_" + str(eps) + "iter_" + str(iter) + ".csv"
+
+                    print("Here: " + name_file)
+
+                    with open(name_file, 'wb') as f:
+                        np.savetxt(f, vals, fmt='%-7.8f', delimiter=',')
 
 
 
@@ -358,14 +403,16 @@ if __name__ == "__main__":
     matrices_X = Generate_data.load_matrices_X()
     order_nodes=Generate_data.load_order_nodes()
 
-
     epsilon_values = [0.01,0.1,0.8]
-    list_k = [8,12]
+    list_k = [4,8,12]
     m_values = [10,30,50,80,100,150,200]
-
     list_s_bulk = list(range(s_bulk))
 
-    m_zero(runs_alg, s_bulk, algo_arg, epsilon_values, list_k)
+    # algo_arg_list=[3,4,5,61,62,67,65,69]
+
+    # m_zero(runs_alg, s_bulk, algo_arg_list, epsilon_values, list_k)
+
+    # sys.exit(1)
 
     if save_data_x_tilde:
 
@@ -384,16 +431,11 @@ if __name__ == "__main__":
             temp.append(matrices_X)
             new_args.append(temp)
 
-        processes = []
+        with multiprocessing.Pool(processes=number_CPU) as pool:
+            pool.starmap(generate_matrix_x_tilde, new_args)
 
-        for ind in new_args:
-            p = multiprocessing.Process(target=generate_matrix_x_tilde, args=ind)
-            p.start()
-            processes.append(p)
-
-        for process in processes:
-            process.join()
-
+        pool.close()
+        pool.join()
 
         dict_matrices_x_tilde={}
 
@@ -410,6 +452,8 @@ if __name__ == "__main__":
 
         save_list_matrices_x_tilde(dict_matrices_x_tilde)
 
+    sys.exit(1)
+
     file_name = "Matrices_X_tilde.pkl"
 
     with open(file_name, 'rb') as f:
@@ -424,7 +468,6 @@ if __name__ == "__main__":
 
             rho = (np.exp(eps) + 1) ** -1
             dict_set_of_matrices[(k,eps,algo_arg)]=set_of_matrices(k, rho, algo_arg,penalty)
-
 
 
     arguments = list(product(list_k, epsilon_values, m_values,list_s_bulk))
@@ -446,15 +489,6 @@ if __name__ == "__main__":
         temp.append(order_nodes)
         new_args.append(temp)
 
-    # for ind in new_args:
-    #     p = multiprocessing.Process(target=randomize_response, args=ind)
-    #     p.start()
-    #     processes.append(p)
-    #
-    # for process in processes:
-    #     process.join()
-
-
 
     with multiprocessing.Pool(processes=number_CPU) as pool:
         pool.starmap(randomize_response, new_args)
@@ -463,16 +497,3 @@ if __name__ == "__main__":
     pool.join()
 
 
-
-
-
-#     eps=0.01
-#     iter=1
-#     h=10
-#
-#     randomize_response(k, eps, h, iter, dict_set_of_matrices, dict_matrices_x_tilde, penalty)
-#
-#     dict_set_of_matrices.keys()
-#     print(dict_set_of_matrices.keys())
-#
-#
