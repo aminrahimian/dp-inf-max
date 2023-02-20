@@ -41,9 +41,6 @@ dictionary_mapping = dict(zip(previous_n_labels, new_labes))
 G_base = nx.relabel_nodes(G_base, dictionary_mapping)
 
 
-def empty():
-    pass
-
 def i_x_s(S,x): 
     
     if S==[]:
