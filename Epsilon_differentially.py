@@ -106,7 +106,7 @@ def exponential_probabilities(Ix, epsilon, n, m):
 
     #   Function that return exponential value of Ix
 
-    return np.exp(((epsilon*n)/(m*2))*Ix)
+    return np.exp(((epsilon*m)/(n*2))*Ix)
 
 
 
