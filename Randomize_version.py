@@ -188,7 +188,7 @@ def set_of_matrices(k, rho, algo_arg,penalty):
             matrix_C_up = fill_matrix_c(matrix_C, dim_matrix_c, rho, o)
             # matrix_C_up=np.append(matrix_C_up,[ dim_matrix_c*[1]], axis=0)
             matrix_penalty=penalty*np.eye(dim_matrix_c)
-            psd_inverse = np.matmul((np.linalg.inv(matrix_C_up +matrix_penalty)),matrix_C_up.T)
+            psd_inverse =np.matmul(np.linalg.inv((matrix_C_up.T)@matrix_C_up + (matrix_penalty.T)@matrix_penalty),(matrix_C_up.T))
             set_of_matrices.append(psd_inverse)
 
         return set_of_matrices
