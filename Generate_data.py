@@ -32,17 +32,10 @@ def generate_live_arc_graph(adj_matrix, p_ic):
 
     return G
 
-
-def save_graph_in_list(G_base, p_ic,N):
+def list_live_arc_graph(adj_matrix, p_ic,N):
     #   This function generates a list where each element is an influence cascade network
     #   Input as the parameters defined globally.
-
-    test_keys = list(G_base.nodes())
-    test_values = list(range(len(test_keys)))
-    dict_to_map = {test_keys[i]: test_values[i] for i in range(len(test_keys))}
-    H = nx.relabel_nodes(G_base, dict_to_map)
-    H = H.to_undirected()
-    m_live_edges = [live_edges_saving(p_ic, H) for i in range(N)]
+    m_live_edges = [generate_live_arc_graph(adj_matrix, p_ic) for _ in range(N)]
 
     return m_live_edges
 
