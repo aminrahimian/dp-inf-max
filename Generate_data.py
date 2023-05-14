@@ -11,34 +11,31 @@ from scipy.stats import bernoulli
 
 # Settings
 
-m = 250  # Number of nodes samples to built matrix X for each influence cascade
+m = 10  # Number of nodes samples to built matrix X for each influence cascade
 p_ic = 0.05  # Probability for Independent Cascade Model
-N=1 # Number of Influence cascade model
+N=5 # Number of Influence cascade model
 
 G_base = nx.read_edgelist("soc-hamsterster_v2.edgelist.txt")
 G_base=G_base.to_undirected()
-previous_n_labels=G_base.nodes()
-new_labes=list(range(len(previous_n_labels)))
-dictionary_mapping = dict(zip(previous_n_labels, new_labes))
-G_base = nx.relabel_nodes(G_base, dictionary_mapping)
 
+adj_matrix_init=nx.to_numpy_array(G_base)
 
-def generate_live_arc_graph(adj_matrix, p_ic):
-    UP = np.triu(adj_matrix, k=1)
-    boolean_mask = np.random.choice([True, False], len(np.where(UP == 1)[0]), p=[1 - p_ic, p_ic])
-    UP[np.where(UP == 1)[0][boolean_mask], np.where(UP == 1)[1][boolean_mask]] = 0
-    cascade = UP + UP.T
-    G = nx.from_numpy_matrix(cascade)
+def generate_live_arc_graph(adj_matrix, p_ic,N):
 
-    return G
+    list_live_arcs=[]
 
-def list_live_arc_graph(adj_matrix, p_ic,N):
-    #   This function generates a list where each element is an influence cascade network
-    #   Input as the parameters defined globally.
-    m_live_edges = [generate_live_arc_graph(adj_matrix, p_ic) for _ in range(N)]
+    for i in range(N):
 
-    return m_live_edges
+        UP = np.triu(adj_matrix, k=1)
+        boolean_mask = np.random.choice([True, False], len(np.where(UP == 1)[0]), p=[1 - p_ic, p_ic])
+        UP[np.where(UP == 1)[0][boolean_mask], np.where(UP == 1)[1][boolean_mask]] = 0
+        cascade = UP + UP.T
+        G = nx.from_numpy_matrix(cascade)
+        G= G.to_undirected()
 
+        list_live_arcs.append(G)
+
+    return list_live_arcs
 
 def load_subgraphs():
     # Function to load pickle files with the list of influence cascade networks
@@ -48,12 +45,12 @@ def load_subgraphs():
 
     return m_live_edges
 
-def built_matrix_X(m, live_edges):
+def built_matrix_X(m, live_arc_graph):
 
     # This function generates the matrix X of dimension mxn
     # Where m and n are the global parameters
 
-    indices = list(live_edges.nodes())
+    indices = list(live_arc_graph.nodes())
     n=len(indices)
     matrix_X = np.zeros((m, n))
 
@@ -61,7 +58,7 @@ def built_matrix_X(m, live_edges):
 
     for i in range(m):
         matrix_X[i, :] = np.array(
-            [nx.has_path(live_edges, j, uniform_nodes[i]) for j in range(n)])
+            [nx.has_path(live_arc_graph, j, uniform_nodes[i]) for j in range(n)])
 
     return matrix_X
 
@@ -84,14 +81,14 @@ def load_order_nodes():
 
     return order_nodes
 
-def set_matrices( m, N, p_ic):
+def set_matrices(adj_matrix_init,p_ic,m, N ):
     #   This function generates and save a set of X matrices.
     #   The number of matrices are defined by N parameter
     #   Return a list with the matrices X and save it as pkl file
+    list_live_arcs=generate_live_arc_graph(adj_matrix_init,p_ic,N)
 
-    G_float = copy.deepcopy(G_base)
-    m_live_edges = save_graph_in_list(G_float, p_ic,N)
-    output_matrix= [built_matrix_X(m,m_live_edges[i]) for i in range(N)]
+
+    output_matrix= [built_matrix_X(m,list_live_arcs[i]) for i in range(N)]
 
     file_name='./matrices_X.pkl'
 
@@ -121,8 +118,11 @@ def load_matrices_X():
     return matrix_X
 
 
+
+
 if __name__ == "__main__":
 
-    set_matrices(m, N, p_ic)
+
+    set_matrices(adj_matrix_init,p_ic,m, N)
 
 
