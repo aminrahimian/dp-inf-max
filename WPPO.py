@@ -7,7 +7,7 @@ from scipy.stats import bernoulli
 from scipy.special import comb
 import pickle
 import Randomize_version
-import Generate_data
+import generate_data
 
 #Parameters
 

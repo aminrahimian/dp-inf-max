@@ -63,7 +63,7 @@ def set_matrices(adj_matrix_init,p_ic,m, N ):
     list_live_arcs=generate_live_arc_graph(adj_matrix_init,p_ic,N)
     output_matrix= [built_matrix_X(m,list_live_arcs[i]) for i in range(N)]
 
-    file_name='./matrices_X.pkl'
+    file_name='./matrices_x.pkl'
 
     with open(file_name, 'wb') as f:
         pickle.dump(output_matrix, f)

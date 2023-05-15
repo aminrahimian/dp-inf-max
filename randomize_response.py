@@ -6,7 +6,7 @@ import copy
 from scipy.stats import bernoulli
 from scipy.special import comb
 import pickle
-import Generate_data
+import generate_data
 from itertools import product
 import multiprocessing
 from multiprocessing import Pool
