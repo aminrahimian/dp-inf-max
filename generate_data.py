@@ -1,4 +1,4 @@
-# Auxiliary script to generate matrices X from a networkx graph
+# Auxiliary script to generate matrices X from the adjency matrix of a graph
 
 import networkx as nx
 import numpy as np
@@ -12,8 +12,8 @@ if dataset_id == 'soc-hamsterster_v2':
 
     dataset_name='soc-hamsterster_v2.csv'
     m = 100         # number of influence samples
-    p_ic = 0.05     # Probability  Independent cascade model (ICM)
-    N = 40          # Number of ICM realizations
+    p_ic = 0.05     # probability  independent cascade model (ICM)
+    N = 40          # number of ICM realizations
 
 def generate_live_arc_graph(adj_matrix, p_ic,N):
     """
