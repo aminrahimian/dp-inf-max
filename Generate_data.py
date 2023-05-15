@@ -2,25 +2,25 @@
 
 import networkx as nx
 import numpy as np
-import pandas as pd
-import random
-import copy
 import pickle
-from scipy.stats import bernoulli
 
+# different datasets require specific parameters that might require calibration.
 
-# Settings
+dataset_id = 'soc-hamsterster_v2'
 
-m = 10  # Number of nodes samples to built matrix X for each influence cascade
-p_ic = 0.05  # Probability for Independent Cascade Model
-N=5 # Number of Influence cascade model
+if dataset_id == 'soc-hamsterster_v2':
 
-G_base = nx.read_edgelist("soc-hamsterster_v2.edgelist.txt")
-G_base=G_base.to_undirected()
-
-adj_matrix_init=nx.to_numpy_array(G_base)
+    dataset_name='soc-hamsterster_v2.csv'
+    m = 100         # number of influence samples
+    p_ic = 0.05     # Probability  Independent cascade model (ICM)
+    N = 40          # Number of ICM realizations
 
 def generate_live_arc_graph(adj_matrix, p_ic,N):
+    """
+        Returns an influence cascade graph of N nodes
+        using probability p_ic using the adjency matrix of the
+        original graph.
+       """
 
     list_live_arcs=[]
 
@@ -37,18 +37,11 @@ def generate_live_arc_graph(adj_matrix, p_ic,N):
 
     return list_live_arcs
 
-def load_subgraphs():
-    # Function to load pickle files with the list of influence cascade networks
-
-    with open('live_edges.pkl', 'rb') as f:
-        m_live_edges = pickle.load(f)
-
-    return m_live_edges
-
 def built_matrix_X(m, live_arc_graph):
-
-    # This function generates the matrix X of dimension mxn
-    # Where m and n are the global parameters
+    """
+       Returns the matrix X of dimension mxn
+       with m number of nodes sampled from the influence cascade and n number of nodes.
+       """
 
     indices = list(live_arc_graph.nodes())
     n=len(indices)
@@ -62,32 +55,12 @@ def built_matrix_X(m, live_arc_graph):
 
     return matrix_X
 
-def generate_random_order(G_base):
-
-    order_nodes=list(G_base.nodes())
-    np.random.shuffle(order_nodes)
-
-    file_name = 'order_nodes.pkl'
-
-    with open(file_name, 'wb') as f:
-        pickle.dump(order_nodes, f)
-
-    return order_nodes
-
-def load_order_nodes():
-
-    with open('order_nodes.pkl', 'rb') as f:
-        order_nodes = pickle.load(f)
-
-    return order_nodes
-
 def set_matrices(adj_matrix_init,p_ic,m, N ):
-    #   This function generates and save a set of X matrices.
-    #   The number of matrices are defined by N parameter
-    #   Return a list with the matrices X and save it as pkl file
+    """
+    This method saves a list of N matrices X, i.e. N independent realizations
+    of the influence cascade model.
+    """
     list_live_arcs=generate_live_arc_graph(adj_matrix_init,p_ic,N)
-
-
     output_matrix= [built_matrix_X(m,list_live_arcs[i]) for i in range(N)]
 
     file_name='./matrices_X.pkl'
@@ -97,32 +70,10 @@ def set_matrices(adj_matrix_init,p_ic,m, N ):
 
     return 0
 
-def load_matrix_X(iter):
-    # Function to load pickle file with already generate X matrices
-
-    file_name = './Matricesx/matrices_X_' + str(iter) + '.pkl'
-
-    with open(file_name, 'rb') as f:
-        matrix_X = pickle.load(f)
-
-    return matrix_X
-
-def load_matrices_X():
-    # Function to load pickle file with already generate X matrices
-
-    file_name = 'Matrix_X.pkl'
-
-    with open(file_name, 'rb') as f:
-        matrix_X = pickle.load(f)
-
-    return matrix_X
-
-
-
 
 if __name__ == "__main__":
 
-
+    adj_matrix_init=np.genfromtxt("soc-hamsterster_v2.csv", delimiter=",")
     set_matrices(adj_matrix_init,p_ic,m, N)
 
 
