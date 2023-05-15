@@ -1,3 +1,5 @@
+# Script to model exponential mechanism and randomized response algorithms
+
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -12,10 +14,6 @@ from multiprocessing import Pool
 import sys
 
 
-# Parameters of the network
-# Parameters of College Network
-
-
 
 n = 2426  # Number of nosde
 m = 1000  # Number of nodes samples to built matrix X for each influence cascade
@@ -27,39 +25,6 @@ runs_alg = 5
 algo_arg = 3
 number_CPU = 320
 
-# n = 3225                    # Number of nodes
-# m = 250                     # Number of nodes samples to built matrix X for each influence cascade
-# k = 4                       # Number of the seed set
-# p_ic = 0.1                # Probability for Independent Cascade Model
-# s_bulk=10 
-#                   # Number of Influence cascade model
-# # # epsilon = 1e-1
-# #
-
-
-# G_base = nx.read_edgelist("Contact-diaries-network_data_2013.csv.gz",nodetype=int, data=(("Type", str),))
-# G_base=G_base.to_undirected()
-
-G_base = nx.read_edgelist("soc-hamsterster_v2.edgelist.txt")
-G_base=G_base.to_undirected()
-previous_n_labels=G_base.nodes()
-new_labes=list(range(len(previous_n_labels)))
-dictionary_mapping = dict(zip(previous_n_labels, new_labes))
-G_base = nx.relabel_nodes(G_base, dictionary_mapping)
-
-
-def i_x_s(S, x):
-
-    if S == []:
-
-        return 0
-
-    else:
-
-        sub_x = x[:, S]
-        temp = np.sum(sub_x, axis=1)
-
-        return sum(temp >= 1)
 
 
 def m_zero(k):
@@ -100,74 +65,6 @@ def m_zero(k):
 seed_set = []
 
 A = set(G_base.nodes())
-
-
-def exponential_probabilities(Ix, epsilon, n, m):
-
-    #   Function that return exponential value of Ix
-
-    return np.exp(((epsilon*m)/(n*2))*Ix)
-
-
-
-def exp_diff_spread(k,eps,h,iter,matrices_X):
-
-    Expected_spread = []
-
-    c_matrix_C = copy.deepcopy(matrices_X)
-
-    sub_matrix_X = c_matrix_C[iter][0:h, :]
-    print("Realization " + str(iter) + "size of m " + str(h) + "_random_" +str(eps))
-
-    # Times that algortihm runs for influence cascade, each value f m, and epsilon.
-
-    for _ in range(runs_alg):
-
-        seed_set = []
-
-        # Iteration over the size of the seed set
-
-        for i in range(k):
-
-            Q = copy.deepcopy(A)
-            B = set(seed_set)
-            S_union_v = copy.deepcopy(seed_set)
-            seed_set_s = copy.deepcopy(seed_set)
-
-            iter_set = Q.difference(B)
-            list_S_minus_seed = list(iter_set)
-            table = np.zeros((len(iter_set), 3))
-
-            # Iteration over the nodes that have not been selected yet
-
-            for j in range(len(iter_set)):
-                S_union_v.append(list_S_minus_seed[j])
-
-                # print("seeding " +str(i_x_s(S_union_v, sub_matrix_X)))
-                # print("which j value " +str(j))
-                table[j, 1] = i_x_s(S_union_v, sub_matrix_X) - \
-                              i_x_s(seed_set_s, sub_matrix_X)
-                table[j, 0] = list_S_minus_seed[j]
-
-                S_union_v = copy.deepcopy(seed_set)
-
-            # Transform from I_x_s values to probabilities
-
-            probabilities = np.array([exponential_probabilities(
-                table[f, 1], eps, n, h) for f in range(len(iter_set))])
-            table[:, 2] = probabilities / np.sum(probabilities)
-
-            # Sampling a node with the probablities found above
-
-            seed_set.append(int(np.random.choice(
-                list(table[:, 0]), 1, p=list(table[:, 2]))[0]))
-
-        Expected_spread.append(i_x_s(seed_set, c_matrix_C[iter]) * (n / m))
-
-    name_file = "./alg3/cnk" + str(k) + "alg3_" + str(h) + "epsilon_" + str(eps) + "iter_" + str(iter) + ".csv"
-
-    with open(name_file, 'wb') as f:
-        np.savetxt(f, Expected_spread, fmt='%-7.8f', delimiter=',')
 
 
 
