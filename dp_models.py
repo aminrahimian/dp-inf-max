@@ -1,4 +1,4 @@
-# Script to model exponential mechanism and randomized response algorithms
+# script to model exponential mechanism and randomized response algorithms
 
 import networkx as nx
 import numpy as np
@@ -16,12 +16,29 @@ import sys
 
 # models settings
 
-m = 1000  # Number of nodes samples to built matrix X for each influence cascade
-p_ic = 0.05  # Probability for Independent Cascade Model
-s_bulk = 80  # Number of Influence cascade model
+m = 20  # Number of nodes samples to built matrix X for each influence cascade
+s_bulk = 40  # Number of Influence cascade model
 # epsilon = 1
 runs_alg = 5
 number_CPU = 4
+
+
+def load_matrices_X():
+    # Function to load pickle file with already generate X matrices
+
+    file_name = 'matrices_X.pkl'
+
+    with open(file_name, 'rb') as f:
+        matrix_X = pickle.load(f)
+
+    return matrix_X
+
+list_matrices_X=load_matrices_X()
+
+iter_arc_live=0
+m=20
+k=4
+epsilon=0.1
 
 
 def expect_spread_exp_mechanism(list_matrices_X,iter_arc_live,m,k,epsilon):
@@ -53,7 +70,13 @@ def expect_spread_exp_mechanism(list_matrices_X,iter_arc_live,m,k,epsilon):
     return  np.sum(np.where(np.sum(ref_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/ref_matrix.shape[0])
 
 
+t=[]
 
+
+for i in range(40):
+    t.append(expect_spread_exp_mechanism(list_matrices_X,2,80,4,0.1))
+
+print(np.mean(t))
 
 def m_zero(k):
 
@@ -89,41 +112,6 @@ def m_zero(k):
         name_file = "cnk" + str(k) + "algo6_" + str(0) + "epsilon_" + str(eps) + ".csv"
 
         np.savetxt(name_file, vals, delimiter=",")
-
-
-
-
-#-----------------------------------------------------------------
-
-if __name__ == "__main__":
-
-    matrices_X = Generate_data.load_matrices_X()
-
-    list_k=[8,12]
-    epsilon_values = [0.01, 0.1, 0.8]
-    m_values = [25,50, 100, 200, 400, 600, 800]
-    iter_val=list(range(s_bulk))
-
-    arguments=list(product(list_k, epsilon_values,m_values,iter_val))
-
-    arguments=[list(i) for i in arguments]
-
-    new_args=[]
-    for i in range(len(arguments)):
-        temp=arguments[i]
-        temp.append(matrices_X)
-        new_args.append(temp)
-
-
-    processes=[]
-
-
-    with multiprocessing.Pool(processes=number_CPU) as pool:
-        pool.starmap(exp_diff_spread, new_args)
-
-    pool.close()
-    pool.join()
-
 
 
 
