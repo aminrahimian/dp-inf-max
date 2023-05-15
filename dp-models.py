@@ -14,16 +14,44 @@ from multiprocessing import Pool
 import sys
 
 
+# models settings
 
-n = 2426  # Number of nosde
 m = 1000  # Number of nodes samples to built matrix X for each influence cascade
 p_ic = 0.05  # Probability for Independent Cascade Model
 s_bulk = 80  # Number of Influence cascade model
 # epsilon = 1
-penalty = 0   # Penalty value for the regularization method
 runs_alg = 5
-algo_arg = 3
-number_CPU = 320
+number_CPU = 4
+
+
+def expect_spread_exp_mechanism(list_matrices_X,iter_arc_live,m,k,epsilon):
+    """
+       Returns I_x(S) using exponential mechanism given the m influence samples,
+       total number of seeds k, and privacy budget epsilon.
+       """
+
+    iter_matrix=list_matrices_X[iter_arc_live][0:m,:]
+    ref_matrix=list_matrices_X[iter_arc_live]
+    n_nodes=iter_matrix.shape[1]
+    seed_set=np.array([],dtype=int)
+
+    for i in range(k):
+
+        node_list=np.arange(0,n_nodes, 1, dtype=int)
+        candidates_node_list=node_list[np.logical_not(np.isin(node_list, seed_set))]
+
+        boolean_mask = np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, False, True)
+        tile_boolean_mask = np.tile(boolean_mask, (n_nodes - len(seed_set), 1)).T
+        boolean_x_diff_s = np.array(iter_matrix[:, candidates_node_list], dtype=bool)
+
+        weights=np.array([np.exp((epsilon*m*i)/(2*n_nodes)) for i in np.sum(np.logical_and(boolean_x_diff_s, tile_boolean_mask), axis=0)])
+        weights=weights/np.sum(weights)
+        node_nu=int(np.random.choice(candidates_node_list,1,p=weights)[0])
+        seed_set=np.append(seed_set,node_nu)
+
+
+    return  np.sum(np.where(np.sum(ref_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/ref_matrix.shape[0])
+
 
 
 
@@ -62,9 +90,6 @@ def m_zero(k):
 
         np.savetxt(name_file, vals, delimiter=",")
 
-seed_set = []
-
-A = set(G_base.nodes())
 
 
 
