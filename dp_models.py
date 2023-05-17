@@ -1,4 +1,4 @@
-# script to model exponential mechanism and randomized response algorithms
+# script to model exponential mechanism and randomized response (all variations) algorithms
 
 import networkx as nx
 import numpy as np
