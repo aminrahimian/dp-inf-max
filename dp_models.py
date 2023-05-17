@@ -20,7 +20,7 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
        Returns I_x(S) using exponential mechanism given the m influence samples,
        total number of seeds k, and privacy budget epsilon.
        """
-    # print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon))
+    print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon))
     iter_matrix_m=iter_matrix[0:m,:]
     n_nodes=iter_matrix.shape[1]
     seed_set=np.array([],dtype=int)
