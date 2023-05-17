@@ -20,7 +20,7 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
        Returns I_x(S) using exponential mechanism given the m influence samples,
        total number of seeds k, and privacy budget epsilon.
        """
-
+    # print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon))
     iter_matrix_m=iter_matrix[0:m,:]
     n_nodes=iter_matrix.shape[1]
     seed_set=np.array([],dtype=int)
@@ -39,7 +39,7 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
         node_nu=int(np.random.choice(candidates_node_list,1,p=weights)[0])
         seed_set=np.append(seed_set,node_nu)
 
-    print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
+    # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
     return  np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])
 
 def m_zero(k):
@@ -118,10 +118,10 @@ def fill_matrix_c(list_k,epsilon_values):
 
     return dict_matrices_c
 
-def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c):
+def expect_spread_randomized_resp(iter_matrix_tilde, m, k, epsilon,dict_matrices_c,iter_matrix):
 
-    iter_matrix_m = iter_matrix[0:m, :]
-    n_nodes = iter_matrix.shape[1]
+    iter_matrix_m = iter_matrix_tilde[0:m, :]
+    n_nodes = iter_matrix_tilde.shape[1]
     seed_set = np.array([], dtype=int)
     # seed_set = np.array([10], dtype=int)
 
@@ -148,7 +148,7 @@ def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c):
         node_nu = random.choices(candidates_node_list[indice], k=1)[0]
         seed_set = np.append(seed_set, node_nu)
 
-        print("seed va por: " +str(node_nu))
+        # print("seed va por: " +str(node_nu))
 
     print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])))
     return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])

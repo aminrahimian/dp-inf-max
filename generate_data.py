@@ -1,4 +1,4 @@
-# Auxiliary script to generate matrices X from the adjency matrix of a graph
+# generate matrices x from the adjency matrix of a graph
 
 import networkx as nx
 import numpy as np
@@ -53,7 +53,9 @@ def built_matrix_X(m, live_arc_graph):
         matrix_X[i, :] = np.array(
             [nx.has_path(live_arc_graph, j, uniform_nodes[i]) for j in range(n)])
 
-    return matrix_X
+    return (matrix_X)
+
+
 
 def set_matrices(adj_matrix_init,p_ic,m, N ):
     """
@@ -69,6 +71,7 @@ def set_matrices(adj_matrix_init,p_ic,m, N ):
         pickle.dump(output_matrix, f)
 
     return 0
+
 
 
 if __name__ == "__main__":
