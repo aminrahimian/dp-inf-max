@@ -14,20 +14,6 @@ from math import comb
 from itertools import product
 
 
-# Parameters
-
-# m m_values                    # samples from influence cascades
-# iter_arc_live = 40           # number of influence cascade models
-# epsilon = 1                  # privacy budget
-# runs_alg = 5                 # times to run dp-algorithm fixing parameters
-# number_CPU = 4               # multiprocessing parameters
-# list_k                       # list size of seed set
-
-# iter_matrix=list_matrices_x[0]
-# iter_arc_live=0
-# m=20
-# k=4
-# epsilon=0.1
 
 def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
     """
@@ -55,7 +41,6 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
 
     print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
     return  np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])
-
 
 def m_zero(k):
 
@@ -106,10 +91,11 @@ def generate_x_tilde(matrix_x,epsilon):
 
     return matrix_x_tilde
 
+
 def fill_matrix_c(list_k,epsilon_values):
 
     keys_c=list(product(list(range(int(max(list_k)))),epsilon_values))
-    dict_matrices_C=dict.fromkeys(keys_c)
+    dict_matrices_c=dict.fromkeys(keys_c)
 
     for k,eps in keys_c:
 
@@ -119,20 +105,53 @@ def fill_matrix_c(list_k,epsilon_values):
 
         for a,b in product(range(l), range(l)):
 
+            a+=1
+            b+=1
             start = max([0, (b - a)])
             end = min([(l - a), b])
 
-            C[a, b] = np.sum(
+            C[(a-1), (b-1)] = np.sum(
                 [comb(b, i) * comb((l - b), (a - b + i)) * (rho ** (a - b + 2 * i)) * (1 - rho) ** (l - a + b - 2 * i)
                  for i in np.arange(start, end + 1)])
 
-        dict_matrices_C[(k,eps)]=np.linalg.inv(C)
+        dict_matrices_c[(k,eps)]=np.linalg.inv(C)
 
-    return dict_matrices_C
+    return dict_matrices_c
 
+def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c):
 
+    iter_matrix_m = iter_matrix[0:m, :]
+    n_nodes = iter_matrix.shape[1]
+    seed_set = np.array([], dtype=int)
+    # seed_set = np.array([10], dtype=int)
 
+    for i in range(k):
 
+        node_list = np.arange(0, n_nodes, 1, dtype=int)
+        candidates_node_list = node_list[np.logical_not(np.isin(node_list, seed_set))]
+
+        partial_s=np.sum(iter_matrix_m[:, seed_set], axis=1)
+        rep_partial_s=np.broadcast_to(partial_s, ((n_nodes - len(seed_set)), m)).T
+        addition=np.add(rep_partial_s, iter_matrix_m[:,candidates_node_list])
+
+        vector_f_tilde=np.zeros(((len(seed_set)+1),(n_nodes - len(seed_set))))
+
+        for f in np.arange(len(seed_set)+1):
+
+            vector_f_tilde[f,:]=np.sum(np.where(addition==f,True,False),axis=0)
+
+        vector_f_tilde=vector_f_tilde/np.sum(vector_f_tilde,axis=0)
+        matrix_C=dict_matrices_c[(i,epsilon)]
+        vector_f=matrix_C@vector_f_tilde
+
+        indice = np.max(vector_f[0, :]) == vector_f[0, :]
+        node_nu = random.choices(candidates_node_list[indice], k=1)[0]
+        seed_set = np.append(seed_set, node_nu)
+
+        print("seed va por: " +str(node_nu))
+
+    print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])))
+    return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
 
 
 
