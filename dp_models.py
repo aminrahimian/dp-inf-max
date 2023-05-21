@@ -126,49 +126,63 @@ def fill_matrix_c(list_k,epsilon_values):
 
     return dict_matrices_c
 
-def expect_spread_randomized_resp(iter_matrix_tilde, m, k, epsilon,dict_matrices_c,iter_matrix):
+def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c,runs_alg):
+    mu_ixs = []
 
-    if m==0:
+    for t in range(runs_alg):
 
-        n_nodes = iter_matrix.shape[1]
-        seed_set=random.choices(np.arange(iter_matrix.shape[1]), k=k)
+        # print("runnnung " +str(t))
 
-        return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
+        if m == 0:
 
-    else:
+            n_nodes = iter_matrix.shape[1]
+            seed_set = random.choices(np.arange(iter_matrix.shape[1]), k=k)
 
-        iter_matrix_m = iter_matrix_tilde[0:m, :]
-        n_nodes = iter_matrix_tilde.shape[1]
-        seed_set = np.array([], dtype=int)
-        # seed_set = np.array([10], dtype=int)
+            print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (
+                    n_nodes / iter_matrix.shape[0])))
 
-        for i in range(k):
+            mu_ixs.append(
+                np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0]))
+            # return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
 
-            node_list = np.arange(0, n_nodes, 1, dtype=int)
-            candidates_node_list = node_list[np.logical_not(np.isin(node_list, seed_set))]
+        else:
 
-            partial_s=np.sum(iter_matrix_m[:, seed_set], axis=1)
-            rep_partial_s=np.broadcast_to(partial_s, ((n_nodes - len(seed_set)), m)).T
-            addition=np.add(rep_partial_s, iter_matrix_m[:,candidates_node_list])
+            iter_matrix_m = generate_x_tilde(iter_matrix[0:m, :], epsilon)
+            n_nodes = iter_matrix.shape[1]
+            seed_set = np.array([], dtype=int)
+            # seed_set = np.array([10], dtype=int)
 
-            vector_f_tilde=np.zeros(((len(seed_set)+1),(n_nodes - len(seed_set))))
+            for i in range(k):
 
-            for f in np.arange(len(seed_set)+1):
+                node_list = np.arange(0, n_nodes, 1, dtype=int)
+                candidates_node_list = node_list[np.logical_not(np.isin(node_list, seed_set))]
 
-                vector_f_tilde[f,:]=np.sum(np.where(addition==f,True,False),axis=0)
+                partial_s = np.sum(iter_matrix_m[:, seed_set], axis=1)
+                rep_partial_s = np.broadcast_to(partial_s, ((n_nodes - len(seed_set)), m)).T
+                addition = np.add(rep_partial_s, iter_matrix_m[:, candidates_node_list])
 
-            vector_f_tilde=vector_f_tilde/np.sum(vector_f_tilde,axis=0)
-            matrix_C=dict_matrices_c[(i,epsilon)]
-            vector_f=matrix_C@vector_f_tilde
+                vector_f_tilde = np.zeros(((len(seed_set) + 1), (n_nodes - len(seed_set))))
 
-            indice = np.max(vector_f[0, :]) == vector_f[0, :]
-            node_nu = random.choices(candidates_node_list[indice], k=1)[0]
-            seed_set = np.append(seed_set, node_nu)
+                for f in np.arange(len(seed_set) + 1):
+                    vector_f_tilde[f, :] = np.sum(np.where(addition == f, True, False), axis=0) / m
 
-            # print("seed va por: " +str(node_nu))
+                matrix_C = dict_matrices_c[(i, epsilon)]
+                vector_f = matrix_C @ vector_f_tilde
 
-        print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])))
-        return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
+                indice = np.max(vector_f[0, :]) == vector_f[0, :]
+                node_nu = random.choices(candidates_node_list[indice], k=1)[0]
+                seed_set = np.append(seed_set, node_nu)
+
+                # print("seed va por: " +str(node_nu))
+
+            # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])))
+            mu_ixs.append(
+                np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0]))
+
+            # return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
+
+    print(" for  m: " + str(m) + ' k: ' + str(k) + 'eps: ' + str(epsilon) + 'having: ' + str(mu_ixs))
+    return (mu_ixs)
 
 
 def expect_spread_randomized_resp_wpp(iter_matrix_tilde, m, k, epsilon,dict_matrices_c,iter_matrix):
