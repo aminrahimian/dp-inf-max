@@ -6,7 +6,9 @@ import pickle
 
 # different datasets require specific parameters that might require calibration.
 
-dataset_id = 'soc-hamsterster_v2'
+# dataset_id = 'soc-hamsterster_v2'
+dataset_id='erdos_renyi'
+
 
 if dataset_id == 'soc-hamsterster_v2':
 
@@ -14,6 +16,13 @@ if dataset_id == 'soc-hamsterster_v2':
     m = 100         # number of influence samples
     p_ic = 0.05     # probability  independent cascade model (ICM)
     N = 40          # number of ICM realizations
+
+if dataset_id == 'erdos_renyi':
+    dataset_name = 'erdos_renyi.csv'
+    m = 100  # number of influence samples
+    p_ic = 0.3 # probability  independent cascade model (ICM)
+    N = 10 # number of ICM realizations
+
 
 def generate_live_arc_graph(adj_matrix, p_ic,N):
     """
@@ -76,7 +85,13 @@ def set_matrices(adj_matrix_init,p_ic,m, N ):
 
 if __name__ == "__main__":
 
-    adj_matrix_init=np.genfromtxt("soc-hamsterster_v2.csv", delimiter=",")
-    set_matrices(adj_matrix_init,p_ic,m, N)
+    if dataset_id=='soc-hamsterster_v2':
 
+        adj_matrix_init=np.genfromtxt("soc-hamsterster_v2.csv", delimiter=",")
+        set_matrices(adj_matrix_init,p_ic,m, N)
+
+    if dataset_id=='erdos_renyi':
+
+        adj_matrix_init = nx.to_numpy_array(nx.erdos_renyi_graph(n=50, p=0.1, seed=10, directed=False))
+        set_matrices(adj_matrix_init, p_ic, m, N)
 
