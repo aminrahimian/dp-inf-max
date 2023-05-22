@@ -15,11 +15,14 @@ from itertools import product
 
 
 
+
 def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
     """
        Returns I_x(S) using exponential mechanism given the m influence samples,
        total number of seeds k, and privacy budget epsilon.
        """
+
+
     if m == 0:
         n_nodes = iter_matrix.shape[1]
         seed_set = random.choices(np.arange(iter_matrix.shape[1]), k=k)
@@ -28,7 +31,7 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
 
     else:
 
-        print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon))
+        # print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon))
         iter_matrix_m=iter_matrix[0:m,:]
         n_nodes=iter_matrix.shape[1]
         seed_set=np.array([],dtype=int)
@@ -42,13 +45,23 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
             tile_boolean_mask = np.tile(boolean_mask, (n_nodes - len(seed_set), 1)).T
             boolean_x_diff_s = np.array(iter_matrix_m[:, candidates_node_list], dtype=bool)
 
-            weights=np.array([np.exp((epsilon*m*i)/(2*n_nodes)) for i in np.sum(np.logical_and(boolean_x_diff_s, tile_boolean_mask), axis=0)])
+
+            weights=np.array([round(np.exp((epsilon*m*i)/(2*n_nodes)), 2) for i in np.sum(np.logical_and(boolean_x_diff_s, tile_boolean_mask), axis=0)])
+            weights = np.nan_to_num(weights, posinf=np.inf)
+            print(" weights infsda " + str((weights)))
             weights=weights/np.sum(weights)
+            # weights=np.nan_to_num(weights)
+            print("sum weights " + str(np.sum(weights)))
+            print("weights after " + str((weights)))
             node_nu=int(np.random.choice(candidates_node_list,1,p=weights)[0])
             seed_set=np.append(seed_set,node_nu)
 
         # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
         return  np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])
+
+
+
+
 
 def generate_x_tilde(matrix_x,epsilon):
 
@@ -93,6 +106,8 @@ def fill_matrix_c(list_k,epsilon_values):
 
 def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c,runs_alg):
 
+    # print("This is matrix x " +str(iter_matrix[0:m,:]))
+
     mu_ixs = []
 
     for t in range(runs_alg):
@@ -104,8 +119,8 @@ def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c,run
             n_nodes = iter_matrix.shape[1]
             seed_set = random.choices(np.arange(iter_matrix.shape[1]), k=k)
 
-            print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (
-                    n_nodes / iter_matrix.shape[0])))
+            # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (
+            #         n_nodes / iter_matrix.shape[0])))
 
             mu_ixs.append(
                 np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0]))
@@ -114,6 +129,10 @@ def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c,run
         else:
 
             iter_matrix_m = generate_x_tilde(iter_matrix[0:m, :], epsilon)
+
+            print("Coincidencia" + str(np.sum(iter_matrix_m!=iter_matrix[0:m,:])))
+
+
             n_nodes = iter_matrix.shape[1]
             seed_set = np.array([], dtype=int)
             # seed_set = np.array([10], dtype=int)
@@ -135,7 +154,7 @@ def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c,run
                 matrix_C = dict_matrices_c[(i, epsilon)]
                 vector_f = matrix_C @ vector_f_tilde
 
-                indice = np.max(vector_f[0, :]) == vector_f[0, :]
+                indice = np.min(vector_f[0, :]) == vector_f[0, :]
                 node_nu = random.choices(candidates_node_list[indice], k=1)[0]
                 seed_set = np.append(seed_set, node_nu)
 
@@ -147,7 +166,7 @@ def expect_spread_randomized_resp(iter_matrix, m, k, epsilon,dict_matrices_c,run
 
             # return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
 
-    print(" for  m: " + str(m) + ' k: ' + str(k) + 'eps: ' + str(epsilon) + 'having: ' + str(mu_ixs))
+    # print(" for  m: " + str(m) + ' k: ' + str(k) + 'eps: ' + str(epsilon) + 'having: ' + str(mu_ixs))
     return (mu_ixs)
 
 
@@ -163,8 +182,8 @@ def expect_spread_randomized_resp_wpp(iter_matrix, m, k, epsilon, dict_matrices_
             n_nodes = iter_matrix.shape[1]
             seed_set = random.choices(np.arange(iter_matrix.shape[1]), k=k)
 
-            print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (
-                    n_nodes / iter_matrix.shape[0])))
+            # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (
+            #         n_nodes / iter_matrix.shape[0])))
 
             mu_ixs.append(
                 np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0]))
@@ -194,8 +213,9 @@ def expect_spread_randomized_resp_wpp(iter_matrix, m, k, epsilon, dict_matrices_
                 matrix_C = dict_matrices_c[(i, epsilon)]
                 vector_f = vector_f_tilde
 
-                indice = np.max(vector_f[0, :]) == vector_f[0, :]
+                indice = np.min(vector_f[0, :]) == vector_f[0, :]
                 node_nu = random.choices(candidates_node_list[indice], k=1)[0]
+                # node_nu=candidates_node_list[np.argmin(vector_f[0, :])]
                 seed_set = np.append(seed_set, node_nu)
 
                 # print("seed va por: " +str(node_nu))
@@ -206,8 +226,34 @@ def expect_spread_randomized_resp_wpp(iter_matrix, m, k, epsilon, dict_matrices_
 
             # return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
 
-    print(" for  m: " + str(m) + ' k: ' + str(k) + 'eps: ' + str(epsilon) + 'having: ' + str(mu_ixs))
+    # print(" for  m: " + str(m) + ' k: ' + str(k) + 'eps: ' + str(epsilon) + 'having: ' + str(mu_ixs))
     return (mu_ixs)
 
 
+def expect_spread_greedy_algorithm(iter_matrix, k):
+    """
+         Returns I_x(S) using exponential mechanism given the m influence samples,
+         total number of seeds k, and privacy budget epsilon.
+         """
 
+    # print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon))
+    iter_matrix_m = iter_matrix
+    n_nodes = iter_matrix.shape[1]
+    seed_set = np.array([], dtype=int)
+
+    for i in range(k):
+        node_list = np.arange(0, n_nodes, 1, dtype=int)
+        candidates_node_list = node_list[np.logical_not(np.isin(node_list, seed_set))]
+
+        boolean_mask = np.where(np.sum(iter_matrix_m[:, seed_set], axis=1) > 0, False, True)
+        tile_boolean_mask = np.tile(boolean_mask, (n_nodes - len(seed_set), 1)).T
+        boolean_x_diff_s = np.array(iter_matrix_m[:, candidates_node_list], dtype=bool)
+
+        partial_sum = np.sum(np.logical_and(boolean_x_diff_s, tile_boolean_mask), axis=0)
+
+        indice = np.max(partial_sum) == partial_sum
+        node_nu = random.choices(candidates_node_list[indice], k=1)[0]
+        seed_set = np.append(seed_set, node_nu)
+
+    # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
+    return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
