@@ -19,9 +19,9 @@ if dataset_id == 'soc-hamsterster_v2':
 
 if dataset_id == 'erdos_renyi':
     dataset_name = 'erdos_renyi.csv'
-    m = 100  # number of influence samples
-    p_ic = 0.3 # probability  independent cascade model (ICM)
-    N = 10 # number of ICM realizations
+    m = 250  # number of influence samples
+    p_ic = 0.05 # probability  independent cascade model (ICM)
+    N = 100 # number of ICM realizations
 
 
 def generate_live_arc_graph(adj_matrix, p_ic,N):

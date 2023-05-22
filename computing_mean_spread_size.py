@@ -11,16 +11,16 @@ do_computation_greedy_algortihm=False
 
 parameters_greedy_alg={
             'matrix_iter_val': list(range(50)),
-            'list_k' : [4,8],
+            'list_k' : [4,8,12],
             'save_computation':True,
             'number_CPU':4,
             'output_file_name':'greedy_alg.csv'}
 
 parameters_exp_mech={
-            'matrix_iter_val': list(range(1)),
-            'm_values' : [0,5,10,50,100],
-            'list_k' : [2,3,4],
-            'epsilon_values' : [0.1,1],
+            'matrix_iter_val': list(range(50)),
+            'm_values' : [0,5,10,20,30,40,60,80],
+            'list_k' : [4,8,12],
+            'epsilon_values' : [0.1,1,10],
             'runs_alg':10,
             'save_computation':True,
             'number_CPU':4,
@@ -28,10 +28,10 @@ parameters_exp_mech={
 
 
 parameters_randomized_version={
-            'matrix_iter_val': list(range(5)),
-            'm_values' :  [0,5,10,50,100],
-            'list_k' : [2,3,4],
-            'epsilon_values':[0.1,1],
+            'matrix_iter_val': list(range(50)),
+            'm_values' :  [0,5,10,20,30,40,60,80],
+            'list_k' : [4,8,12],
+            'epsilon_values':[0.1,1,10],
             'runs_alg':10,
             'save_computation':True,
             'number_CPU':4,
@@ -237,7 +237,7 @@ if __name__ == "__main__":
 
     if do_computation_randomized_without_post_pr:
         parameters_randomized_version['output_file_name']='randomized_version_wpp.csv'
-        dump_expected_spread_randomized_response(list_matrices_x, **parameters_randomized_version)
+        dump_expected_spread_randomized_response_wpp(list_matrices_x, **parameters_randomized_version)
 
     if do_computation_greedy_algortihm:
         dump_expected_spread_greedy_alg(list_matrices_x, **parameters_greedy_alg)

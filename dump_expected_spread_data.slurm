@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="Rand Resp"
+#SBATCH --job-name="dp-alg"
 #SBATCH --nodes=8
 #SBATCH --ntasks-per-node=40
 #SBATCH --mem-per-cpu=3G
@@ -14,5 +14,5 @@
 #SBATCH --mail-user=cah259@pitt.edu
 
 module load gcc/8.2.0 python/anaconda3.9-2021.11
-python3 /ihome/arahimian/cah259/dp_inf_max/Randomize_version.py ${SLURM_ARRAY_TASK_ID}
+python3 /ihome/arahimian/cah259/dp_inf_max/computing_mean_spread_size.py ${SLURM_ARRAY_TASK_ID}
 
