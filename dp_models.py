@@ -36,15 +36,22 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
 
         for i in range(k):
 
+            #candidates_node_list nodes that are not in seed set.
+
             node_list=np.arange(0,n_nodes, 1, dtype=int)
             candidates_node_list=node_list[np.logical_not(np.isin(node_list, seed_set))]
+
+            #boolean_mask
+            #tile_boolean_mask
+            #boolean_x_diff_s
 
             boolean_mask = np.where(np.sum(iter_matrix_m[:, seed_set], axis=1) > 0, False, True)
             tile_boolean_mask = np.tile(boolean_mask, (n_nodes - len(seed_set), 1)).T
             boolean_x_diff_s = np.array(iter_matrix_m[:, candidates_node_list], dtype=bool)
 
-
-            weights=np.array([round(np.exp((epsilon*m*i)/(2*n_nodes)), 2) for i in np.sum(np.logical_and(boolean_x_diff_s, tile_boolean_mask), axis=0)])
+            I_x_given_s=(np.sum(np.logical_and(boolean_x_diff_s, tile_boolean_mask), axis=0))*(n_nodes/m)
+            print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon)+" Vector of I_x: "+ str(max(I_x_given_s)))
+            weights=np.array([np.exp((epsilon*i*m)/(2*n_nodes)) for i in I_x_given_s])
             # weights = np.nan_to_num(weights, posinf=np.inf)
             weights=weights/np.sum(weights)
             node_nu=int(np.random.choice(candidates_node_list,1,p=weights)[0])
@@ -53,6 +60,49 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
         # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
         return  np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])
 
+
+def expect_spread_greedy_alg(iter_matrix,m,k,epsilon):
+    """
+       Returns I_x(S) using exponential mechanism given the m influence samples,
+       total number of seeds k, and privacy budget epsilon.
+       """
+
+    if m == 0:
+        n_nodes = iter_matrix.shape[1]
+        seed_set = random.choices(np.arange(iter_matrix.shape[1]), k=k)
+
+        return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
+
+    else:
+
+        # print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon))
+        iter_matrix_m=iter_matrix[0:m,:]
+        n_nodes=iter_matrix.shape[1]
+        seed_set=np.array([],dtype=int)
+
+        for i in range(k):
+
+            #candidates_node_list nodes that are not in seed set.
+
+            node_list=np.arange(0,n_nodes, 1, dtype=int)
+            candidates_node_list=node_list[np.logical_not(np.isin(node_list, seed_set))]
+
+            #boolean_mask
+            #tile_boolean_mask
+            #boolean_x_diff_s
+
+            boolean_mask = np.where(np.sum(iter_matrix_m[:, seed_set], axis=1) > 0, False, True)
+            tile_boolean_mask = np.tile(boolean_mask, (n_nodes - len(seed_set), 1)).T
+            boolean_x_diff_s = np.array(iter_matrix_m[:, candidates_node_list], dtype=bool)
+
+            I_x_given_s=(np.sum(np.logical_and(boolean_x_diff_s, tile_boolean_mask), axis=0))*(n_nodes/m)
+            print("Iteration m:" + str(m)+ ",k: "+ str(k)+ " ,e: "+str(epsilon)+" Vector of I_x: "+ str(max(I_x_given_s)))
+
+            node_nu = candidates_node_list[np.argmax(I_x_given_s)]
+            seed_set=np.append(seed_set,node_nu)
+
+        # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
+        return  np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])
 
 
 
@@ -224,7 +274,7 @@ def expect_spread_randomized_resp_wpp(iter_matrix, m, k, epsilon, dict_matrices_
     return (mu_ixs)
 
 
-def expect_spread_greedy_algorithm(iter_matrix, k):
+def greedy_algorithm_reference(iter_matrix, k):
     """
          Returns I_x(S) using exponential mechanism given the m influence samples,
          total number of seeds k, and privacy budget epsilon.
@@ -251,8 +301,6 @@ def expect_spread_greedy_algorithm(iter_matrix, k):
 
     # print(str(np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0))*(n_nodes/iter_matrix.shape[0])))
     return np.sum(np.where(np.sum(iter_matrix[:, seed_set], axis=1) > 0, 1, 0)) * (n_nodes / iter_matrix.shape[0])
-
-
 
 def fill_matrix_c_regularization(list_k,epsilon,penalty_values):
 
