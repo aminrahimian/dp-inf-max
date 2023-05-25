@@ -10,6 +10,7 @@ do_computation_greedy_algortihm_reference=True
 do_computation_greedy_algortihm=True
 # dataset_id='soc-hamsterster_v2'
 dataset_id = 'email-Eu-core'
+# dataset_id = 'erdos_renyi'
 
 if dataset_id == 'soc-hamsterster_v2':
 
@@ -47,17 +48,17 @@ if dataset_id == 'email-Eu-core':
         'list_k': [4,8,12],
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': 'greedy_alg_reference.csv'}
+        'output_file_name': './data_email-Eu-core/greedy_alg_reference.csv'}
 
     parameters_greedy_alg = {
         'matrix_iter_val': list(range(50)),
         'm_values': [0, 100, 250, 500, 750, 1000, 1250, 1500],
         'list_k': [4, 8, 12],
-        'epsilon_values': [None, None,None],
+        'epsilon_values': [0.1],
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': 'greedy_alg.csv'}
+        'output_file_name': './data_email-Eu-core/greedy_alg.csv'}
 
     parameters_exp_mech = {
         'matrix_iter_val': list(range(50)),
@@ -67,7 +68,7 @@ if dataset_id == 'email-Eu-core':
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': 'exp_mech.csv'}
+        'output_file_name': './data_email-Eu-core/exp_mech.csv'}
 
     parameters_randomized_version = {
         'matrix_iter_val': list(range(50)),
@@ -77,42 +78,52 @@ if dataset_id == 'email-Eu-core':
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': 'randomized_version.csv'}
+        'output_file_name': './data_email-Eu-core/randomized_version.csv'}
 
 if dataset_id == 'erdos_renyi':
 
-    parameters_greedy_alg = {
+    parameters_greedy_alg_ref = {
         'matrix_iter_val': list(range(50)),
         'list_k': [2,4],
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': 'greedy_alg.csv'}
+        'output_file_name': './data_erdos_renyi/greedy_alg_reference.csv'}
+
+    parameters_greedy_alg = {
+        'matrix_iter_val': list(range(50)),
+        'm_values': [0,50,100,200,300,400,500],
+        'list_k': [2,4],
+        'epsilon_values': [0.1],
+        'runs_alg': 25,
+        'save_computation': True,
+        'number_CPU': 4,
+        'output_file_name': './data_erdos_renyi/greedy_alg.csv'}
 
     parameters_exp_mech = {
         'matrix_iter_val': list(range(50)),
-        'm_values': [0,10,50,100,250, 500, 750,1000,1250],
+        'm_values': [0,50,100,200,300,400,500],
         'list_k': [2,4],
-        'epsilon_values': [0.1,0.5, 1],
-        'runs_alg': 20,
+        'epsilon_values': [0.1, 0.5, 1],
+        'runs_alg': 25,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': 'exp_mech.csv'}
+        'output_file_name': './data_erdos_renyi/exp_mech.csv'}
 
     parameters_randomized_version = {
         'matrix_iter_val': list(range(50)),
-        'm_values':[0,10,50,100,250, 500, 750,1000],
+        'm_values': [0,50,100,200,300,400,500],
         'list_k': [2,4],
         'epsilon_values': [0.1, 0.5, 1],
-        'runs_alg': 20,
+        'runs_alg': 25,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': 'randomized_version.csv'}
+        'output_file_name': './data_erdos_renyi/randomized_version.csv'}
 
 
-def load_matrices_x():
+def load_matrices_x(dataset_id):
 
     # Function to load pickle file with already generate X matrices
-    file_name = 'matrices_x.pkl'
+    file_name = "./data_" + dataset_id +'/matrices_x.pkl'
 
     with open(file_name, 'rb') as f:
         matrix_X = pickle.load(f)
@@ -331,7 +342,7 @@ def dump_expected_spread_greedy_alg(list_matrices_x,matrix_iter_val, m_values,li
 
 if __name__ == "__main__":
 
-    list_matrices_x = load_matrices_x()
+    list_matrices_x = load_matrices_x(dataset_id)
 
     if do_computation_exp_mech:
 

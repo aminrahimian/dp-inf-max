@@ -7,8 +7,8 @@ import pickle
 # different datasets require specific parameters that might require calibration.
 
 # dataset_id = 'soc-hamsterster_v2'
-# dataset_id='erdos_renyi'
-dataset_id = 'email-Eu-core'
+dataset_id='erdos_renyi'
+# dataset_id = 'email-Eu-core'
 
 if dataset_id == 'soc-hamsterster_v2':
 
@@ -20,7 +20,7 @@ if dataset_id == 'soc-hamsterster_v2':
 if dataset_id == 'erdos_renyi':
 
     dataset_name = 'erdos_renyi.csv'
-    m = 2000  # number of influence samples
+    m = 1000  # number of influence samples
     p_ic = 0.03 # probability  independent cascade model (ICM)
     N = 50 # number of ICM realizations
 
