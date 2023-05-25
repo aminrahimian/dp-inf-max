@@ -1,4 +1,5 @@
-# Plot figure 2 
+# Plot expected spread size for dp algorithms for a given size of seed set k
+#setwd("~/PycharmProjects/dp-inf-max")
 
 library(ggplot2)
 library(R.matlab)
@@ -8,49 +9,62 @@ library(dplyr)
 library(tidyr)
 
 
-df1<-read.csv('exp_mech.csv')
-
-df2<-read.csv('randomized_version.csv')
-
-df3<- read.csv('randomized_version_wpp.csv')
+df1<-read.csv('./data_email-Eu-core/exp_mech.csv')
+df2<-read.csv('./data_email-Eu-core/randomized_version.csv')
+df3 <- read.csv('./data_email-Eu-core/greedy_alg.csv')
+greedy_vals=read.csv('./data_email-Eu-core/greedy_alg_reference.csv')
 
 
 df1 <-df1 %>%mutate(algorithm= rep('exponential\nmechanism',dim(.)[1])) %>%  
-  mutate_at(c('m', 'k','epsilon','algorithm'), as.factor)
+  mutate_at(c('m', 'k','epsilon','algorithm'), as.factor) %>% 
+  filter(k!=12)
 
-df2<- df2 %>%mutate(algorithm= rep('randomize\nresponse',dim(.)[1])) %>%  
-  mutate_at(c('m', 'k','epsilon','algorithm'), as.factor)
-
-df3<- df3 %>%mutate(algorithm= rep('rr w/o\npost. proces.',dim(.)[1])) %>%  
-  mutate_at(c('m', 'k','epsilon','algorithm'), as.factor) 
+df2<- df2 %>%mutate(algorithm= rep('randomized\nresponse',dim(.)[1])) %>%  
+  mutate_at(c('m', 'k','epsilon','algorithm'), as.factor) %>% 
+  filter(k!=12)
 
 
-df<-rbind(df1,df2,df2,df3)
+df3<- df3 %>%mutate(algorithm= rep('non-private\nalgorithm',dim(.)[1])) %>%  
+  mutate_at(c('m', 'k','epsilon','algorithm'), as.factor) %>% 
+  mutate(epsilon=NA) %>% filter(k!=12)
 
-df <- df %>% mutate(comp=rep(c('c1','c2'),each=dim(df2)[1]*2))
-df$comp<- as.factor(df$comp)
 
+df<-rbind(df1,df2,df3)
 
 df<- df %>% mutate(s=paste('k = ',k, sep = ""))
+df$s<- factor(df$s, levels = c('k = 4', 'k = 8'), ordered = TRUE) 
+hline_dat = data.frame(s=c('k = 4', 'k = 8'),
+                       threshold=c(greedy_vals[1,2],greedy_vals[2,2]))
+df<-df %>% mutate(m=as.numeric(as.character(df$m)))
 
-df$s<- factor(df$s, levels = c('k = 4', 'k = 8', 'k = 12'), ordered = TRUE) 
 
-
-str(df)
-
-g<- ggplot(df, aes(x=m, y=ixs_mu, colour=algorithm, fill=algorithm)) + 
+g<- ggplot(df, aes(x=m, y=ixs_mu, colour=algorithm)) + 
   geom_errorbar(aes(ymin=ixs_mu-(1.96/(sqrt(ixs_n)))*ixs_sd, ymax=ixs_mu+(1.96/(sqrt(ixs_n)))*ixs_sd), width=.05) +
+  geom_point(aes(shape=(epsilon), size=0.5), size=2,na.rm =T)+
   geom_line(aes(group=interaction(epsilon, algorithm))) +
-  geom_point(aes(shape=(epsilon), size=0.5), size=2)+
-  theme_light() +
-  theme(legend.key.height=unit(0.8, "cm"), legend.key.width =unit(0.1, "cm"),
-        legend.text=element_text(size=10))+
+  geom_hline(data=hline_dat, aes(yintercept=threshold,linetype = "greedy alg.\nupper bound"), 
+             colour="#A21212")+
+  scale_x_continuous(limits = c(0, 1500)) +
+  theme_light()+
   scale_color_manual(values=c("#F59E07","#1F618D", "#C0392B"))+
-  labs(x = "number of influece samples", y="expected size of the spread")+
+  labs(x = "number of influece samples", y="expected spread  size")+
   theme(strip.background = element_rect(colour = "white", fill = "white"),
         strip.text.x = element_text(colour = "black",size = 10),
   )+
-  facet_grid(comp~s)+
-  guides(shape = guide_legend(title = expression(paste(epsilon))))
-
+  facet_grid(.~s)+
+  guides(shape = guide_legend(title = expression(paste(epsilon))))+
+  scale_shape(na.translate = FALSE)+
+  scale_linetype_manual(name = "", values = c(2), 
+                        guide = guide_legend(override.aes = list(color = c("#A21212"))))+
+  theme(legend.key.height=unit(0.8, "cm"), legend.key.width =unit(0.1, "cm"),
+        legend.text=element_text(size=9))
 g
+
+
+
+saving_name="email-eu-core-k-48-exp-rr.pdf"
+
+
+ggsave(saving_name, plot = g, width = 6.5, height = 4, units = "in", dpi = 300)
+
+
