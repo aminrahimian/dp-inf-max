@@ -52,8 +52,8 @@ User should transform network dataset information to run the simulations:
 
 + **output structure**: 
 
-| k | penalty   | Ixs_mu | Ixs_sd | Ixs_n |
-| --- | ---- | --- | ---- | --- | ---- |
+| k | penalty  | Ixs_mu | Ixs_sd | Ixs_n |
+| --- | ---- | --- | ---- | --- |
 | 4 | 0.1 | 120 | 20 | 10 |
 | . | . | . | . | .|
 
