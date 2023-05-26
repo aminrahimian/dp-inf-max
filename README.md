@@ -2,7 +2,7 @@
 
 This project provides python scripts to simulate the following differentially private algorithms for influence maximization problem: exponential mechanism and randomized response. R scripts plot the results of the simulations.
 
-## getting Started
+## getting started
 
 ### software 
 
