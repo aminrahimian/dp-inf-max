@@ -9,7 +9,7 @@ This project provides python scripts to simulate the following differentially pr
 + RStudio 2022.07.0+548 
 + Python 3.10
 
-*Depending of the size of the dataset and parameters simulations, user might require access to high performance computing (HPC)*
+*Depending on the size of the dataset and parameters simulations, user might require access to high performance computing (HPC)*
 
 ## simulations execution:
 
