@@ -3,12 +3,13 @@
 import networkx as nx
 import numpy as np
 import pickle
-
+import pandas as pd
 # different datasets require specific parameters that might require calibration.
 
 # dataset_id = 'soc-hamsterster_v2'
-dataset_id='erdos_renyi'
+# dataset_id='erdos_renyi'
 # dataset_id = 'email-Eu-core'
+dataset_id='HIV_network'
 
 if dataset_id == 'soc-hamsterster_v2':
 
@@ -27,11 +28,16 @@ if dataset_id == 'erdos_renyi':
 if dataset_id == 'email-Eu-core':
 
     dataset_name = 'email-Eu-core.csv'
-    m = 2000  # number of influence samples
+    m = 3000  # number of influence samples
     p_ic = 0.0155  # probability  independent cascade model (ICM)
     N = 50  # number of ICM realizations
 
+if dataset_id == 'HIV_network':
 
+    dataset_name = 'HIV_network.csv'
+    m = 3000  # number of influence samples
+    p_ic = 0.03  # probability  independent cascade model (ICM)
+    N = 50  # number of ICM realizations
 
 def generate_live_arc_graph(adj_matrix, p_ic,N):
     """
@@ -103,8 +109,20 @@ if __name__ == "__main__":
     if dataset_id=='erdos_renyi':
 
         adj_matrix_init = nx.to_numpy_array(nx.erdos_renyi_graph(n=200, p=0.15, seed=100, directed=False))
+
         set_matrices(adj_matrix_init, p_ic, m, N)
+
 
     if dataset_id == 'email-Eu-core':
         adj_matrix_init = np.genfromtxt("email-Eu-core.csv", delimiter=",")
         set_matrices(adj_matrix_init, p_ic, m, N)
+
+
+    if dataset_id == 'HIV_network':
+        # adj_matrix_init = nx.to_numpy_array(nx.erdos_renyi_graph(n=200, p=0.15, seed=100, directed=False))
+        adj_matrix_init = pd.read_csv("HIV_network.csv")
+        adj_matrix_init = adj_matrix_init.iloc[:, 1:]
+        adj_matrix_init = adj_matrix_init.values
+        print(adj_matrix_init)
+        set_matrices(adj_matrix_init, p_ic, m, N)
+
