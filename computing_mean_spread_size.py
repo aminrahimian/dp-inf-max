@@ -14,7 +14,7 @@ do_computation_greedy_algortihm=True
 # dataset_id='soc-hamsterster_v2'
 #dataset_id = 'email-Eu-core'
 #dataset_id = 'erdos_renyi'
-dataset_id = 'HIV_network'
+dataset_id = 'MSM_network'
 
 if dataset_id == 'soc-hamsterster_v2':
 
@@ -123,14 +123,14 @@ if dataset_id == 'erdos_renyi':
         'number_CPU': 4,
         'output_file_name': './data_erdos_renyi/randomized_version.csv'}
 
-if dataset_id == 'HIV_network':
+if dataset_id == 'MSM_network':
 
     parameters_greedy_alg_ref = {
         'matrix_iter_val': list(range(50)),
         'list_k': [10, 20],
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': './data_HIV_network/greedy_alg_reference.csv'}
+        'output_file_name': './data_MSM_network/greedy_alg_reference.csv'}
 
     parameters_greedy_alg = {
         'matrix_iter_val': list(range(50)),
@@ -140,7 +140,7 @@ if dataset_id == 'HIV_network':
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': './data_HIV_network/greedy_alg.csv'}
+        'output_file_name': './data_MSM_network/greedy_alg.csv'}
 
     parameters_exp_mech = {
         'matrix_iter_val': list(range(50)),
@@ -150,7 +150,7 @@ if dataset_id == 'HIV_network':
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': './data_HIV_network/exp_mech.csv'}
+        'output_file_name': './data_MSM_network/exp_mech.csv'}
 
     parameters_randomized_version = {
         'matrix_iter_val': list(range(50)),
@@ -160,7 +160,7 @@ if dataset_id == 'HIV_network':
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
-        'output_file_name': './data_HIV_network/randomized_version.csv'}
+        'output_file_name': './data_MSM_network/randomized_version.csv'}
 def load_matrices_x(dataset_id):
 
     # Function to load pickle file with already generate X matrices
