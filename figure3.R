@@ -62,7 +62,7 @@ g
 
 
 
-saving_name="HIV-network-k-1020-exp-rr-2.pdf"
+saving_name="MSM-network-k-1020-exp-rr-2.pdf"
 
 
 ggsave(saving_name, plot = g, width = 6.5, height = 4, units = "in", dpi = 300)
