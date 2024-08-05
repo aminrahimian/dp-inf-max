@@ -28,6 +28,7 @@ User should transform network dataset information to run the simulations:
 + email-Eu-core dataset : [source.](https://snap.stanford.edu/data/email-Eu-core.html)
 + soc-hamsterster_v2 dataset : [source.](https://networkrepository.com/soc-hamsterster.php)
 + Erdos-Renyi: synthetic dataset using Erdos-Renyi model with parameters ($n=200, p=0.15$)
++ MSM network: MSM(Men who have Sex with Men) network using temporal exponential random graph models (TERGMs) based on data from the egocentrically sampled survey ARTnet, conducted in the United States from 2017 to 2019, with 4,909 participants and 16,198 sexual partnerships. [source.](https://github.com/EpiModel/ARTnet, https://github.com/EpiModel/NetAnalysis-SF-ATL)
 
 ### execution:
 
@@ -68,6 +69,8 @@ User should transform network dataset information to run the simulations:
 + **figure 1**: R script to generate a pdf file for figure 1 using outputs for computing_mean_spread_size.py setting *dataset_id = 'email-Eu-core'*. 
 
 + **figure 2**: R script to generate a pdf file for figure 2 using outputs for computing_mean_spread_size.py setting *dataset_id = 'erdos_renyi'*.
+  
++ **figure 3**: R script to generate a pdf file for figure 3 using outputs for computing_mean_spread_size.py setting *dataset_id = 'MSM_network'*.
 
 
 
