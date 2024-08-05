@@ -1,16 +1,20 @@
 # expected spread size for different  DP algorithms
 
 from dp_models import *
+import pandas as pd
+from scipy.stats import bernoulli
+
 
 do_computation_exp_mech=True
 do_computation_randomized=True
 do_generate_matrix_x_randomized=False
-do_computation_randomized_without_post_pr=True
+do_computation_randomized_without_post_pr=False
 do_computation_greedy_algortihm_reference=True
 do_computation_greedy_algortihm=True
 # dataset_id='soc-hamsterster_v2'
-dataset_id = 'email-Eu-core'
-# dataset_id = 'erdos_renyi'
+#dataset_id = 'email-Eu-core'
+#dataset_id = 'erdos_renyi'
+dataset_id = 'HIV_network'
 
 if dataset_id == 'soc-hamsterster_v2':
 
@@ -119,7 +123,44 @@ if dataset_id == 'erdos_renyi':
         'number_CPU': 4,
         'output_file_name': './data_erdos_renyi/randomized_version.csv'}
 
+if dataset_id == 'HIV_network':
 
+    parameters_greedy_alg_ref = {
+        'matrix_iter_val': list(range(50)),
+        'list_k': [10, 20],
+        'save_computation': True,
+        'number_CPU': 4,
+        'output_file_name': './data_HIV_network/greedy_alg_reference.csv'}
+
+    parameters_greedy_alg = {
+        'matrix_iter_val': list(range(50)),
+        'm_values': [0, 500, 1000, 1500, 2000,2500,3000],
+        'list_k': [10, 20],
+        'epsilon_values': [1],
+        'runs_alg': 10,
+        'save_computation': True,
+        'number_CPU': 4,
+        'output_file_name': './data_HIV_network/greedy_alg.csv'}
+
+    parameters_exp_mech = {
+        'matrix_iter_val': list(range(50)),
+        'm_values': [0, 500, 1000, 1500, 2000,2500,3000],
+        'list_k': [10, 20],
+        'epsilon_values': [1, 3, 5],
+        'runs_alg': 10,
+        'save_computation': True,
+        'number_CPU': 4,
+        'output_file_name': './data_HIV_network/exp_mech.csv'}
+
+    parameters_randomized_version = {
+        'matrix_iter_val': list(range(50)),
+        'm_values': [0, 500, 1000, 1500, 2000,2500,3000],
+        'list_k': [10, 20],
+        'epsilon_values': [1, 3, 5],
+        'runs_alg': 10,
+        'save_computation': True,
+        'number_CPU': 4,
+        'output_file_name': './data_HIV_network/randomized_version.csv'}
 def load_matrices_x(dataset_id):
 
     # Function to load pickle file with already generate X matrices
@@ -161,10 +202,10 @@ def dump_expected_spread_exp_mech(list_matrices_x,matrix_iter_val, m_values,list
         df=pd.DataFrame(np.concatenate((table_parameters, np.array(result).reshape(table_parameters.shape[0],1)), axis=1),
                              columns=['arc_live','m','k','epsilon','ixs'])
 
-        df.groupby(['m', 'k', 'epsilon'], as_index=False).agg(
+        df.groupby(['m', 'k', 'epsilon']).agg(
             ixs_mu=('ixs', 'mean'),
             ixs_sd=('ixs', 'std'),
-            ixs_n=('ixs', 'count')).to_csv(output_file_name, index=False)
+            ixs_n=('ixs', 'count')).to_csv(output_file_name)
 
 def dump_expected_spread_randomized_response(list_matrices_x,matrix_iter_val, m_values,list_k,
                                   epsilon_values,runs_alg,save_computation,number_CPU,
@@ -210,10 +251,10 @@ def dump_expected_spread_randomized_response(list_matrices_x,matrix_iter_val, m_
         df = pd.DataFrame(np.array(hp).reshape((runs_alg * table_parameters.shape[0]), table_parameters.shape[1] + 1),
                           columns=['arc_live', 'm', 'k', 'epsilon', 'ixs'])
 
-        df.groupby(['m', 'k', 'epsilon'], as_index=False).agg(
+        df.groupby(['m', 'k', 'epsilon']).agg(
             ixs_mu=('ixs', 'mean'),
             ixs_sd=('ixs', 'std'),
-            ixs_n=('ixs', 'count')).to_csv(output_file_name, index=False)
+            ixs_n=('ixs', 'count')).to_csv(output_file_name)
 
         print(str(df))
 
@@ -262,10 +303,10 @@ def dump_expected_spread_randomized_response_wpp(list_matrices_x,matrix_iter_val
         df = pd.DataFrame(np.array(hp).reshape((runs_alg * table_parameters.shape[0]), table_parameters.shape[1] + 1),
                           columns=['arc_live', 'm', 'k', 'epsilon', 'ixs'])
 
-        df.groupby(['m', 'k', 'epsilon'], as_index=False).agg(
+        df.groupby(['m', 'k', 'epsilon']).agg(
             ixs_mu=('ixs', 'mean'),
             ixs_sd=('ixs', 'std'),
-            ixs_n=('ixs', 'count')).to_csv(output_file_name, index=False)
+            ixs_n=('ixs', 'count')).to_csv(output_file_name)
 
 
 def dump_expected_spread_greedy_alg_reference(list_matrices_x,matrix_iter_val,
@@ -298,10 +339,10 @@ def dump_expected_spread_greedy_alg_reference(list_matrices_x,matrix_iter_val,
         df=pd.DataFrame(np.concatenate((table_parameters, np.array(result).reshape(table_parameters.shape[0],1)), axis=1),
                              columns=['arc_live','k','ixs'])
 
-        df.groupby([ 'k', ], as_index=False).agg(
+        df.groupby([ 'k', ]).agg(
             ixs_mu=('ixs', 'mean'),
             ixs_sd=('ixs', 'std'),
-            ixs_n=('ixs', 'count')).to_csv(output_file_name, index=False)
+            ixs_n=('ixs', 'count')).to_csv(output_file_name)
 
 
 def dump_expected_spread_greedy_alg(list_matrices_x,matrix_iter_val, m_values,list_k,
@@ -334,10 +375,10 @@ def dump_expected_spread_greedy_alg(list_matrices_x,matrix_iter_val, m_values,li
         df=pd.DataFrame(np.concatenate((table_parameters, np.array(result).reshape(table_parameters.shape[0],1)), axis=1),
                              columns=['arc_live','m','k','epsilon','ixs'])
 
-        df.groupby(['m', 'k', 'epsilon'], as_index=False).agg(
+        df.groupby(['m', 'k', 'epsilon']).agg(
             ixs_mu=('ixs', 'mean'),
             ixs_sd=('ixs', 'std'),
-            ixs_n=('ixs', 'count')).to_csv(output_file_name, index=False)
+            ixs_n=('ixs', 'count')).to_csv(output_file_name)
 
 
 if __name__ == "__main__":
