@@ -134,9 +134,9 @@ if dataset_id == 'MSM_network':
 
     parameters_greedy_alg = {
         'matrix_iter_val': list(range(50)),
-        'm_values': [0, 500, 1000, 1500, 2000,2500,3000],
+        'm_values': [0, 500, 1000, 1500, 2000, 2500, 3000],
         'list_k': [10, 20],
-        'epsilon_values': [1],
+        'epsilon_values': [3],
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
@@ -144,9 +144,9 @@ if dataset_id == 'MSM_network':
 
     parameters_exp_mech = {
         'matrix_iter_val': list(range(50)),
-        'm_values': [0, 500, 1000, 1500, 2000,2500,3000],
+        'm_values': [0, 500, 1000, 1500, 2000, 2500, 3000],
         'list_k': [10, 20],
-        'epsilon_values': [1, 3, 5],
+        'epsilon_values': [1, 2, 3],
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
@@ -154,9 +154,9 @@ if dataset_id == 'MSM_network':
 
     parameters_randomized_version = {
         'matrix_iter_val': list(range(50)),
-        'm_values': [0, 500, 1000, 1500, 2000,2500,3000],
+        'm_values': [0, 500, 1000,1500, 2000, 2500, 3000],
         'list_k': [10, 20],
-        'epsilon_values': [1, 3, 5],
+        'epsilon_values': [1, 2, 3],
         'runs_alg': 10,
         'save_computation': True,
         'number_CPU': 4,
