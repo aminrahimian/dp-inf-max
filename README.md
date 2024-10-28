@@ -23,7 +23,7 @@ User should transform network dataset information to run the simulations:
 - p_ic : probability  independent cascade model (ICM).
 - N : number of ICM realizations.
 + **generate_msm_influence sample.py:** Used to generate influence samples for corresponding sexual behavior relationships
-+ 
+ 
 **predetermined datasets:**
 
 + email-Eu-core dataset : [source.](https://snap.stanford.edu/data/email-Eu-core.html)
