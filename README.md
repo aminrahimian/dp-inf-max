@@ -22,13 +22,16 @@ User should transform network dataset information to run the simulations:
 - m : number of influence samples.
 - p_ic : probability  independent cascade model (ICM).
 - N : number of ICM realizations.
-
++ **generate_msm_influence sample.py:** Used to generate influence samples for corresponding sexual behavior relationships
++ 
 **predetermined datasets:**
 
 + email-Eu-core dataset : [source.](https://snap.stanford.edu/data/email-Eu-core.html)
 + soc-hamsterster_v2 dataset : [source.](https://networkrepository.com/soc-hamsterster.php)
 + Erdos-Renyi: synthetic dataset using Erdos-Renyi model with parameters ($n=200, p=0.15$)
-+ MSM network: MSM(Men who have Sex with Men) network using temporal exponential random graph models (TERGMs) based on data from the egocentrically sampled survey ARTnet, conducted in the United States from 2017 to 2019, with 4,909 participants and 16,198 sexual partnerships. [source.](https://github.com/EpiModel/ARTnet, https://github.com/EpiModel/NetAnalysis-SF-ATL)
++ MSM dynamic network: MSM(Men who have Sex with Men) network using temporal exponential random graph models (TERGMs) based on data from the egocentrically sampled survey ARTnet, conducted in the United States from 2017 to 2019, with 4,909 participants and 16,198 sexual partnerships. [source.](https://github.com/EpiModel/ARTnet) The dataset is not publicly accessible. Access to the data requires a Memorandum of Understanding
+(MOU), which specifies the personnel involved in the analysis and the purposes of the data analysis. The dataset cannot be shared without the consent of the ARTnet Study Principal Investigator (PI),
+Samuel Jenness at Emory University, as outlined in the MOU. To request access, please contact the PI by email at samuel.m.jenness@emory.edu. Upon review and approval of the MOU, access to the ARTnet dataset will be provided through GitHub.
 
 ### execution:
 
@@ -67,10 +70,8 @@ User should transform network dataset information to run the simulations:
 ### Visualization
 
 + **figure 1**: R script to generate a pdf file for figure 1 using outputs for computing_mean_spread_size.py setting *dataset_id = 'email-Eu-core'*. 
-
-+ **figure 2**: R script to generate a pdf file for figure 2 using outputs for computing_mean_spread_size.py setting *dataset_id = 'erdos_renyi'*.
   
-+ **figure 3**: R script to generate a pdf file for figure 3 using outputs for computing_mean_spread_size.py setting *dataset_id = 'MSM_network'*.
++ **figure 2**: R script to generate a pdf file for figure 3 using outputs for computing_mean_spread_size.py setting *dataset_id = 'MSM_network'*.
 
 
 
