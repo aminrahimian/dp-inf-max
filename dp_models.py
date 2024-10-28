@@ -63,7 +63,7 @@ def expect_spread_exp_mechanism(iter_matrix,m,k,epsilon):
 
 def expect_spread_greedy_alg(iter_matrix,m,k,epsilon):
     """
-       Returns I_x(S) using exponential mechanism given the m influence samples,
+       Returns I_x(S) using greedy algorithm given the m influence samples,
        total number of seeds k, and privacy budget epsilon.
        """
 
