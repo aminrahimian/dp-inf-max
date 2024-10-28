@@ -170,7 +170,7 @@ for (i in 1:num_initial_nodes) {
 
 
 
-#以下是新的代码
+
 # Extend simulation to 120 weeks
 out <- sim_network(est, nsteps = 120)
 
